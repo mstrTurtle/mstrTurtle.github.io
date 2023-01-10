@@ -14,7 +14,7 @@
 <meta property="og:description" content="Haskell配置笔记前置条件请注意: $PATH不要有win下的choco(cabal), 还有apt的ghc等等. 需要先清理干净. 第一步, 安装GHCUP.(从官网上,找到curl安装脚本的链接.) 等它下完东西, ghcup就会出现在&#x2F;.ghcup&#x2F;bin里面. 此时要在&#x2F;.bashrc里重新export PATH&#x3D; $PATH:&#x2F;hom">
 <meta property="og:locale" content="en_US">
 <meta property="article:published_time" content="2023-01-10T16:18:36.886Z">
-<meta property="article:modified_time" content="2023-01-10T16:16:20.341Z">
+<meta property="article:modified_time" content="2023-01-10T16:30:21.609Z">
 <meta property="article:author" content="John Doe">
 <meta name="twitter:card" content="summary">
   
@@ -103,7 +103,8 @@
 <p>也可以</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">cradle:</span><br><span class="line">  cabal:</span><br><span class="line">    - path: &quot;./src&quot;</span><br><span class="line">      component: &quot;exe:Main&quot;</span><br></pre></td></tr></table></figure>
 <p>这样. 但这样太specific了. 不如上面自动推理</p>
-<h2 id="第四步-改myvec-cabal"><a href="#第四步-改myvec-cabal" class="headerlink" title="第四步, 改myvec.cabal"></a>第四步, 改myvec.cabal</h2><p>把executable myvec加上<br><code>other-modules:    Vec3</code><br>这样你的Vec3.hs才是模块.否则就会</p>
+<h2 id="第四步-改myvec-cabal"><a href="#第四步-改myvec-cabal" class="headerlink" title="第四步, 改myvec.cabal"></a>第四步, 改myvec.cabal</h2><p>受到<a target="_blank" rel="noopener" href="https://cabal.readthedocs.io/en/stable/cabal-package.html">6. Package Description</a>的启发:</p>
+<p>把executable myvec加上<br><code>other-modules:    Vec3</code><br>这样你的Vec3.hs才是模块.否则就会</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">turtle@turtle:~/myvec$ cabal v2-repl /home/turtle/myvec/app/Vec3.hs</span><br><span class="line">cabal: Unknown target &#x27;/home/turtle/myvec/app/Vec3.hs&#x27;.</span><br><span class="line">The package myvec has no file target &#x27;app/Vec3.hs&#x27;.</span><br><span class="line"></span><br><span class="line">turtle@turtle:~/myvec$</span><br></pre></td></tr></table></figure>
 
 <p>即:</p>
