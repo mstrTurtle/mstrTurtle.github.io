@@ -4,17 +4,17 @@
   <meta charset="utf-8">
   
   
-  <title>Hexo怎么用 | 生活中的智慧</title>
+  <title>继续思考coroutine | 生活中的智慧</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-  <meta name="description" content="这些命令应该有所帮助: 12345hexo -hhexo dhexo ghexo d -gcat (Get-PSReadlineOption).HistorySavePath | select-something hexo">
+  <meta name="description" content="20计科一班肖嘉裕:不是的，猪猪在静坐 20计科一班肖嘉裕: 20计科一班肖嘉裕:正在冥想 20计科一班肖嘉裕:并且猪猪貌似还真想出了点啥 20计科一班肖嘉裕: Mångata:嗯嗯 Mångata:比如呢 20计科一班肖嘉裕:比如: 协程是怎么恢复上下文的 20计科一班肖嘉裕:比如一个没有initial_suspend的东西, 外界是怎么获得handle, 让它恢复执行的呢 20计科一班肖嘉裕:">
 <meta property="og:type" content="article">
-<meta property="og:title" content="Hexo怎么用">
-<meta property="og:url" content="http://example.com/2023/01/11/hexo/index.html">
+<meta property="og:title" content="继续思考coroutine">
+<meta property="og:url" content="http://example.com/2023/01/12/coroutine-revisit/index.html">
 <meta property="og:site_name" content="生活中的智慧">
-<meta property="og:description" content="这些命令应该有所帮助: 12345hexo -hhexo dhexo ghexo d -gcat (Get-PSReadlineOption).HistorySavePath | select-something hexo">
+<meta property="og:description" content="20计科一班肖嘉裕:不是的，猪猪在静坐 20计科一班肖嘉裕: 20计科一班肖嘉裕:正在冥想 20计科一班肖嘉裕:并且猪猪貌似还真想出了点啥 20计科一班肖嘉裕: Mångata:嗯嗯 Mångata:比如呢 20计科一班肖嘉裕:比如: 协程是怎么恢复上下文的 20计科一班肖嘉裕:比如一个没有initial_suspend的东西, 外界是怎么获得handle, 让它恢复执行的呢 20计科一班肖嘉裕:">
 <meta property="og:locale" content="en_US">
-<meta property="article:published_time" content="2023-01-10T16:21:47.179Z">
-<meta property="article:modified_time" content="2023-01-10T16:31:38.922Z">
+<meta property="article:published_time" content="2023-01-12T15:32:24.645Z">
+<meta property="article:modified_time" content="2023-01-12T15:32:45.662Z">
 <meta property="article:author" content="John Doe">
 <meta name="twitter:card" content="summary">
   
@@ -73,10 +73,10 @@
 </header>
 
       <div class="outer">
-        <section id="main"><article id="post-hexo" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+        <section id="main"><article id="post-coroutine-revisit" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
   <div class="article-meta">
-    <a href="/2023/01/11/hexo/" class="article-date">
-  <time class="dt-published" datetime="2023-01-10T16:21:47.179Z" itemprop="datePublished">2023-01-11</time>
+    <a href="/2023/01/12/coroutine-revisit/" class="article-date">
+  <time class="dt-published" datetime="2023-01-12T15:32:24.645Z" itemprop="datePublished">2023-01-12</time>
 </a>
     
   </div>
@@ -87,7 +87,7 @@
         
   
     <h1 class="p-name article-title" itemprop="headline name">
-      Hexo怎么用
+      继续思考coroutine
     </h1>
   
 
@@ -95,12 +95,29 @@
     
     <div class="e-content article-entry" itemprop="articleBody">
       
-        <p>这些命令应该有所帮助:</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">hexo -h</span><br><span class="line">hexo d</span><br><span class="line">hexo g</span><br><span class="line">hexo d -g</span><br><span class="line"><span class="built_in">cat</span> (Get-PSReadlineOption).HistorySavePath | select-something hexo</span><br></pre></td></tr></table></figure>
+        <p>20计科一班肖嘉裕:<br>不是的，猪猪在静坐</p>
+<p>20计科一班肖嘉裕:</p>
+<p>20计科一班肖嘉裕:<br>正在冥想</p>
+<p>20计科一班肖嘉裕:<br>并且猪猪貌似还真想出了点啥</p>
+<p>20计科一班肖嘉裕:</p>
+<p>Mångata:<br>嗯嗯</p>
+<p>Mångata:<br>比如呢</p>
+<p>20计科一班肖嘉裕:<br>比如: 协程是怎么恢复上下文的</p>
+<p>20计科一班肖嘉裕:<br>比如一个没有initial_suspend的东西, 外界是怎么获得handle, 让它恢复执行的呢</p>
+<p>20计科一班肖嘉裕:<br>还有就是, co_return后, 发生了什么?</p>
+<p>20计科一班肖嘉裕:<br>这一点猪猪想明白了, 应该是编译器自动塞了些保存线程上下文的代码, 把活儿给干了</p>
+<p>20计科一班肖嘉裕:<br>这点的话, 猪猪需要参考cppreference这个网站, 它有个生成器示例, 看看就知道handle在哪儿</p>
+<p>Mångata:</p>
+<p>20计科一班肖嘉裕:<br>猪猪看了看, 发现handle是编译器自动注入promise_type的</p>
+<p>20计科一班肖嘉裕:<br>handle有promise, done, destory, operator(), 这四种方法</p>
+<p>20计科一班肖嘉裕:<br>可以自由控制协程的启停, 查询协程的状态, 获取协程的promise_type</p>
+<p>Mångata:</p>
+<p>20计科一班肖嘉裕:<br>cppreference里的Generator(也就是promise_type), 暴露了一个函数. 此函数可以调用handle的operator(), 让协程继续运行(也就是踢协程一脚)</p>
+
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://example.com/2023/01/11/hexo/" data-id="clcqfyx7e000138jubbh98da9" data-title="Hexo怎么用" class="article-share-link">Share</a>
+      <a data-url="http://example.com/2023/01/12/coroutine-revisit/" data-id="clct926dx0000k0ju949mgq38" data-title="继续思考coroutine" class="article-share-link">Share</a>
       
       
       
@@ -110,19 +127,10 @@
     
 <nav id="article-nav">
   
-    <a href="/2023/01/12/coroutine-revisit/" id="article-nav-newer" class="article-nav-link-wrap">
-      <strong class="article-nav-caption">Newer</strong>
-      <div class="article-nav-title">
-        
-          继续思考coroutine
-        
-      </div>
-    </a>
   
-  
-    <a href="/2023/01/11/haskell/" id="article-nav-older" class="article-nav-link-wrap">
+    <a href="/2023/01/11/hexo/" id="article-nav-older" class="article-nav-link-wrap">
       <strong class="article-nav-caption">Older</strong>
-      <div class="article-nav-title">Haskell配置笔记</div>
+      <div class="article-nav-title">Hexo怎么用</div>
     </a>
   
 </nav>
