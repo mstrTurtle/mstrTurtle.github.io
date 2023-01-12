@@ -94,23 +94,32 @@
     <div class="e-content article-entry" itemprop="articleBody">
       
         <p>20计科一班肖嘉裕:<br>不是的，猪猪在静坐</p>
-<p>20计科一班肖嘉裕:</p>
+<p>20计科一班肖嘉裕:<br>[笑哭]</p>
 <p>20计科一班肖嘉裕:<br>正在冥想</p>
 <p>20计科一班肖嘉裕:<br>并且猪猪貌似还真想出了点啥</p>
-<p>20计科一班肖嘉裕:</p>
-<p>Mångata:<br>嗯嗯</p>
-<p>Mångata:<br>比如呢</p>
+<p>20计科一班肖嘉裕:<br>[斜眼笑]</p>
+<p>Mångata:<br>[笑哭]嗯嗯</p>
+<p>Mångata:<br>比如呢[斜眼笑]</p>
 <p>20计科一班肖嘉裕:<br>比如: 协程是怎么恢复上下文的</p>
 <p>20计科一班肖嘉裕:<br>比如一个没有initial_suspend的东西, 外界是怎么获得handle, 让它恢复执行的呢</p>
 <p>20计科一班肖嘉裕:<br>还有就是, co_return后, 发生了什么?</p>
-<p>20计科一班肖嘉裕:<br>这一点猪猪想明白了, 应该是编译器自动塞了些保存线程上下文的代码, 把活儿给干了</p>
-<p>20计科一班肖嘉裕:<br>这点的话, 猪猪需要参考cppreference这个网站, 它有个生成器示例, 看看就知道handle在哪儿</p>
-<p>Mångata:</p>
+<p>20计科一班肖嘉裕:</p>
+<blockquote>
+<p>还有就是, co_return后, 发生了什么?<br>这一点猪猪想明白了, 应该是编译器自动塞了些保存线程上下文的代码, 把活儿给干了</p>
+</blockquote>
+<p>20计科一班肖嘉裕:</p>
+<blockquote>
+<p>比如一个没有initial_suspend的东西, 外界是怎么获得handle, 让它恢复执行的呢<br>这点的话, 猪猪需要参考cppreference这个网站, 它有个生成器示例, 看看就知道handle在哪儿</p>
+</blockquote>
+<p>Mångata:<br>[兔子-哇]</p>
 <p>20计科一班肖嘉裕:<br>猪猪看了看, 发现handle是编译器自动注入promise_type的</p>
 <p>20计科一班肖嘉裕:<br>handle有promise, done, destory, operator(), 这四种方法</p>
 <p>20计科一班肖嘉裕:<br>可以自由控制协程的启停, 查询协程的状态, 获取协程的promise_type</p>
-<p>Mångata:</p>
+<p>Mångata:<br>[奶龙-哇]</p>
 <p>20计科一班肖嘉裕:<br>cppreference里的Generator(也就是promise_type), 暴露了一个函数. 此函数可以调用handle的operator(), 让协程继续运行(也就是踢协程一脚)</p>
+<p>20计科一班肖嘉裕:<br>[斜眼笑]</p>
+<p>20计科一班肖嘉裕:<br>这就是猪猪的全部思路啦</p>
+<p>Mångata:<br>[奶龙-哇]</p>
 
       
     </div>
