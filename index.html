@@ -71,6 +71,68 @@
       <div class="outer">
         <section id="main">
   
+    <article id="post-cond-variable" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2023/01/15/cond-variable/" class="article-date">
+  <time class="dt-published" datetime="2023-01-15T09:37:17.391Z" itemprop="datePublished">2023-01-15</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2023/01/15/cond-variable/">对条件变量cv的思考</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>请参看此篇文章(或者是教材某一章节):</p>
+<p><a target="_blank" rel="noopener" href="https://pages.cs.wisc.edu/~remzi/OSTEP/threads-cv.pdf">https://pages.cs.wisc.edu/~remzi/OSTEP/threads-cv.pdf</a></p>
+<p>现在要求父进程join子进程, 现在试图用cv来给出thr_join(父进程等待)和thr_exit(子进程宣告退出)的实现.</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line">1 int done = 0;</span><br><span class="line">2 pthread_mutex_t m = PTHREAD_MUTEX_INITIALIZER;</span><br><span class="line">3 pthread_cond_t c = PTHREAD_COND_INITIALIZER;</span><br><span class="line">4</span><br><span class="line">5 void thr_exit() &#123;</span><br><span class="line">6     Pthread_mutex_lock(&amp;m);</span><br><span class="line">7     done = 1;</span><br><span class="line">8     Pthread_cond_signal(&amp;c);</span><br><span class="line">9     Pthread_mutex_unlock(&amp;m);</span><br><span class="line">10 &#125;</span><br><span class="line">11</span><br><span class="line">12 void *child(void *arg) &#123;</span><br><span class="line">13     printf(&quot;child\n&quot;);</span><br><span class="line">14     thr_exit();</span><br><span class="line">15     return NULL;</span><br><span class="line">16 &#125;</span><br><span class="line">17</span><br><span class="line">18 void thr_join() &#123;</span><br><span class="line">19     Pthread_mutex_lock(&amp;m);</span><br><span class="line">20     while (done == 0)</span><br><span class="line">21         Pthread_cond_wait(&amp;c, &amp;m);</span><br><span class="line">22     Pthread_mutex_unlock(&amp;m);</span><br><span class="line">23 &#125;</span><br><span class="line">24</span><br><span class="line">25 int main(int argc, char *argv[]) &#123;</span><br><span class="line">26     printf(&quot;parent: begin\n&quot;);</span><br><span class="line">27     pthread_t p;</span><br><span class="line">28     Pthread_create(&amp;p, NULL, child, NULL);</span><br><span class="line">29     thr_join();</span><br><span class="line">30     printf(&quot;parent: end\n&quot;);</span><br><span class="line">31     return 0;</span><br><span class="line">32 &#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<h2 id="形式化流程"><a href="#形式化流程" class="headerlink" title="形式化流程"></a>形式化流程</h2><p>令读done为(左←), 等为(下↓)<br>令设done为(右→), 踢为(上↑)</p>
+<p>那么可以形式化描述带<code>lock(&amp;m)</code>的上述程序为:</p>
+<p>(←↓?)(→↑)</p>
+<p>问号?表示, 当且仅当←在→之前时, 取↓(如果done&#x3D;1, 事实上不用等了, 直接跳走就行)</p>
+<h2 id="要点0-done变量的必要性"><a href="#要点0-done变量的必要性" class="headerlink" title="要点0: done变量的必要性"></a>要点0: done变量的必要性</h2><p>考虑上述形式化中, <code>(→↑)(←↓?)</code>的情形.</p>
+<p><code>if(done)</code>正是判断↓是否执行的步骤.</p>
+<p>如果没有此变量, 将发生<code>→↑←↓</code>. 这意味着”踢”被错过了, “等”发生在”踢”后.<br>故, 将会发生死锁现象, 没人会踢父进程了.</p>
+<p>可见有if(!done)的逻辑, 是很有必要的. 至于这里我们采用while(!done), 看似冗余, 其实也是必要的. 其原因, 下文的”要点3”有解释.</p>
+<h2 id="要点1-mutex锁的必要性"><a href="#要点1-mutex锁的必要性" class="headerlink" title="要点1: mutex锁的必要性"></a>要点1: mutex锁的必要性</h2><p>需要注意的是, <code>lock(&amp;m)</code>是不可或缺的:</p>
+<p>理由是: </p>
+<p>根据形式化的式子, 现在, 有锁, 全体操作为2个原子操作, 即括号间不能重叠.</p>
+<p>但取消锁, 操作就变成了4个原子操作. 其中, 括号内操作保序, 但不再原子.</p>
+<p>于是, 考虑可能发生的<code>←→↑↓</code>的情形.</p>
+<p>众所皆知, cv的踢, 仅当有东西等时才有效. 若没cv实例在等, 那么踢了什么都不会发生.</p>
+<p>那么, 上述情形就成为了死锁: thr_join进程将不断等待.</p>
+<h2 id="要点2-while的必要性"><a href="#要点2-while的必要性" class="headerlink" title="要点2: while的必要性"></a>要点2: while的必要性</h2><p>等的cv实例, 可能会被假唤醒(即明明没进程踢cv, 但操作系统却踢了你.)<br>其原理可能是: </p>
+<p>其一, 不负责任的Solaris, 让它踢一个, 它会踢全部(参见维基英文词条”假唤醒”)</p>
+<p>其二, 常见的操作系统行为, 此时确实有进程踢了, 但踢了后你的变量可能又被改了:</p>
+<p>即, 确实有人踢了, 操作系统也正好打算唤醒被踢的人. 此时, 时间片到了, 另一个人又把done改了. 如果你不仅要考虑踢, 还要考虑done的正确性, 那么你需要while循环来检测.</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2023/01/15/cond-variable/" data-id="clcx7fqa70000ysjubxnqgx2d" data-title="对条件变量cv的思考" class="article-share-link">Share</a>
+      
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
     <article id="post-coroutine-revisit" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
   <div class="article-meta">
     <a href="/2023/01/12/coroutine-revisit/" class="article-date">
@@ -609,6 +671,10 @@
       <ul>
         
           <li>
+            <a href="/2023/01/15/cond-variable/">对条件变量cv的思考</a>
+          </li>
+        
+          <li>
             <a href="/2023/01/12/coroutine-revisit/">继续思考coroutine</a>
           </li>
         
@@ -622,10 +688,6 @@
         
           <li>
             <a href="/2022/12/13/coroutine/">coroutine解剖麻雀</a>
-          </li>
-        
-          <li>
-            <a href="/2022/12/12/opengl/">OpenGL各种东西详解</a>
           </li>
         
       </ul>
