@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  
+  <title>Win10控制台应用IME研究 | mstrTurtle的生活智慧</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta name="description" content="如何用全局快捷键, 切换到指定输入法? 一种思路是用窗口事件，另一种是ActivateKeyboardLayout。后者有待研究, 但至少前者是管用的，并将在下文叙述。 在下文所述切输入法方法的基础上，加以完善，就能实现完整可用的程序。具体的完善方法为：写一个后台服务, 捕获全局快捷键, 获得当前焦点窗口的hWnd, 然后按下文所述方法，给它发切输入法的消息。 概念说明：根据： Manage th">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Win10控制台应用IME研究">
+<meta property="og:url" content="http://example.com/2023/03/03/inputmethod/index.html">
+<meta property="og:site_name" content="mstrTurtle的生活智慧">
+<meta property="og:description" content="如何用全局快捷键, 切换到指定输入法? 一种思路是用窗口事件，另一种是ActivateKeyboardLayout。后者有待研究, 但至少前者是管用的，并将在下文叙述。 在下文所述切输入法方法的基础上，加以完善，就能实现完整可用的程序。具体的完善方法为：写一个后台服务, 捕获全局快捷键, 获得当前焦点窗口的hWnd, 然后按下文所述方法，给它发切输入法的消息。 概念说明：根据： Manage th">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2023-03-03T12:47:44.513Z">
+<meta property="article:modified_time" content="2023-03-03T12:48:25.763Z">
+<meta property="article:author" content="John Doe">
+<meta name="twitter:card" content="summary">
+  
+    <link rel="alternate" href="/atom.xml" title="mstrTurtle的生活智慧" type="application/atom+xml">
+  
+  
+    <link rel="shortcut icon" href="/favicon.png">
+  
+  
+    
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-source-code-pro@0.0.71/index.min.css">
+
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+    
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+
+  
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">mstrTurtle的生活智慧</a>
+      </h1>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+          <a id="nav-rss-link" class="nav-icon" href="/atom.xml" title="RSS Feed"></a>
+        
+        <a id="nav-search-btn" class="nav-icon" title="Search"></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="http://example.com"></form>
+      </div>
+    </div>
+  </div>
+</header>
+
+      <div class="outer">
+        <section id="main"><article id="post-inputmethod" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2023/03/03/inputmethod/" class="article-date">
+  <time class="dt-published" datetime="2023-03-03T12:47:44.513Z" itemprop="datePublished">2023-03-03</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="p-name article-title" itemprop="headline name">
+      Win10控制台应用IME研究
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>如何用全局快捷键, 切换到指定输入法? 一种思路是用窗口事件，另一种是ActivateKeyboardLayout。后者有待研究, 但至少前者是管用的，并将在下文叙述。</p>
+<p>在下文所述切输入法方法的基础上，加以完善，就能实现完整可用的程序。具体的完善方法为：写一个后台服务, 捕获全局快捷键, 获得当前焦点窗口的hWnd, 然后按下文所述方法，给它发切输入法的消息。</p>
+<p>概念说明：<br>根据：</p>
+<p>Manage the input and display language settings in Windows - Microsoft Support</p>
+<p>得出，KeyboardLayout指Tray里的方框。</p>
+<p>根据：</p>
+<p>Using an Input Method Editor in a Game - Win32 apps | Microsoft Learn</p>
+<p>得出，此方框也叫Input Locale Indicator。</p>
+<p>根据：</p>
+<p>About Input Method Manager - Win32 apps | Microsoft Learn</p>
+<p>IMM只在安装了东亚Locale时，才会启用；IMM会创造IME。</p>
+<p>对于自己调整自己的命令行程序举例:<br>在Console的子进程里自娱自乐是没用的, 必须让ConsoleWindow去做这事儿才有用。</p>
+<p>具体的方法就是, 给ConsoleWindow一个事件, 指挥它改变键盘布局。</p>
+<p>#include &lt;Windows.h&gt;<br>#include &lt;winuser.h&gt;<br>#include <iostream><br>int main() {<br>    while (true) {<br>        HWND hCon &#x3D; GetConsoleWindow();<br>        DWORD dwNewKeybLayout &#x3D; 0x00000409; &#x2F;&#x2F; Layout must be already loaded!<br>        PostMessage(hCon, WM_INPUTLANGCHANGEREQUEST, 0, (LPARAM)dwNewKeybLayout);<br>        PostMessage(hCon, WM_INPUTLANGCHANGE, 0, (LPARAM)dwNewKeybLayout);<br>        std::cin.get();<br>    }<br>    return 0;<br>}<br>此法的原理可根据：</p>
+<p>WM_INPUTLANGCHANGEREQUEST message (Winuser.h) - Win32 apps | Microsoft Learn</p>
+<p>得出。原理可根据文中一个例子轻易看出，在此简单地转述原文的意思：</p>
+<p>一般来讲，手动点Tray切输入法，或者按Win+Space切换输入法时，操作系统会给所在焦点窗口发送该事件；窗口可以捕获并拒绝该事件，但也可置之不理，任凭转发给操作系统。这样就完成了输入法的切换。</p>
+<p>转述完毕。</p>
+<p>注意，此方法也有副作用，那就是此Console所在Window下的所有进程的KeyboardLayout都将受到波及。</p>
+<p>对于IMM的评论:<br>至于IMM, 经过我的研究, 它一般只能和当前IME做协作, 顶多切换全半角, 而对改变布局毫无帮助。</p>
+<p>其他有用的参考资料：<br>此问答提供了代码中消息切输入法的思想：</p>
+<p>c++ - LoadKeyboardLayout doesn’t change keyboard layout - Stack Overflow</p>
+<p>此问答给出了IME的许多有益资料：</p>
+<p>windows - how do you use IME? - Stack Overflow</p>
+<p>此博客给出了许多常见中文输入法的IMM API调用结果例子：</p>
+<p>[Imm]Imm API学习笔记——输入法属性 - zyl910 - 博客园 (cnblogs.com)</p>
+<p>此文档给出了IMM函数的列表，据说很多imm.h头文件里的签名没有在此罗列：</p>
+<p>Input Method Manager Functions - Win32 apps | Microsoft Learn</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2023/03/03/inputmethod/" data-id="clesjeei20001sgju59daazd9" data-title="Win10控制台应用IME研究" class="article-share-link">Share</a>
+      
+      
+      
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2023/03/03/cpp-encoding/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Newer</strong>
+      <div class="article-nav-title">
+        
+          c++编译中的乱码分析
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2023/03/03/encoding/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">字符编码的历史与dotnet的做法</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+
+</section>
+        
+          <aside id="sidebar">
+  
+    
+
+  
+    
+
+  
+    
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Archives</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/03/">March 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/01/">January 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/12/">December 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/10/">October 2022</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Recent Posts</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2023/03/03/cpp-encoding/">c++编译中的乱码分析</a>
+          </li>
+        
+          <li>
+            <a href="/2023/03/03/inputmethod/">Win10控制台应用IME研究</a>
+          </li>
+        
+          <li>
+            <a href="/2023/03/03/encoding/">字符编码的历史与dotnet的做法</a>
+          </li>
+        
+          <li>
+            <a href="/2023/03/03/saga-agenda/">YouTube Saga视频的Agenda</a>
+          </li>
+        
+          <li>
+            <a href="/2023/03/03/jboss/">JBoss社区好的东西</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      
+      &copy; 2023 John Doe<br>
+      Powered by <a href="https://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+</nav>
+    
+
+
+<script src="/js/jquery-3.4.1.min.js"></script>
+
+
+
+  
+<script src="/fancybox/jquery.fancybox.min.js"></script>
+
+
+
+
+<script src="/js/script.js"></script>
+
+
+
+
+
+  </div>
+</body>
+</html>
