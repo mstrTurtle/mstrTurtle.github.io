@@ -6,15 +6,15 @@
   
   <title>Win10控制台应用IME研究 | mstrTurtle的生活智慧</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-  <meta name="description" content="如何用全局快捷键, 切换到指定输入法? 一种思路是用窗口事件，另一种是ActivateKeyboardLayout。后者有待研究, 但至少前者是管用的，并将在下文叙述。 在下文所述切输入法方法的基础上，加以完善，就能实现完整可用的程序。具体的完善方法为：写一个后台服务, 捕获全局快捷键, 获得当前焦点窗口的hWnd, 然后按下文所述方法，给它发切输入法的消息。 概念说明：根据： Manage th">
+  <meta name="description" content="源自我的知乎回答: win10如何切换输入法？ 如何用全局快捷键, 切换到指定输入法? 一种思路是用窗口事件，另一种是ActivateKeyboardLayout。后者有待研究, 但至少前者是管用的，并将在下文叙述。 在下文所述切输入法方法的基础上，加以完善，就能实现完整可用的程序。具体的完善方法为：写一个后台服务, 捕获全局快捷键, 获得当前焦点窗口的hWnd, 然后按下文所述方法，给它发切输入">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Win10控制台应用IME研究">
-<meta property="og:url" content="http://example.com/2023/03/03/inputmethod/index.html">
+<meta property="og:url" content="http://example.com/2023/03/03/ime-research/index.html">
 <meta property="og:site_name" content="mstrTurtle的生活智慧">
-<meta property="og:description" content="如何用全局快捷键, 切换到指定输入法? 一种思路是用窗口事件，另一种是ActivateKeyboardLayout。后者有待研究, 但至少前者是管用的，并将在下文叙述。 在下文所述切输入法方法的基础上，加以完善，就能实现完整可用的程序。具体的完善方法为：写一个后台服务, 捕获全局快捷键, 获得当前焦点窗口的hWnd, 然后按下文所述方法，给它发切输入法的消息。 概念说明：根据： Manage th">
+<meta property="og:description" content="源自我的知乎回答: win10如何切换输入法？ 如何用全局快捷键, 切换到指定输入法? 一种思路是用窗口事件，另一种是ActivateKeyboardLayout。后者有待研究, 但至少前者是管用的，并将在下文叙述。 在下文所述切输入法方法的基础上，加以完善，就能实现完整可用的程序。具体的完善方法为：写一个后台服务, 捕获全局快捷键, 获得当前焦点窗口的hWnd, 然后按下文所述方法，给它发切输入">
 <meta property="og:locale" content="en_US">
 <meta property="article:published_time" content="2023-03-03T12:47:44.513Z">
-<meta property="article:modified_time" content="2023-03-09T08:11:43.061Z">
+<meta property="article:modified_time" content="2023-03-09T08:23:26.391Z">
 <meta property="article:author" content="John Doe">
 <meta property="article:tag" content="Windows">
 <meta name="twitter:card" content="summary">
@@ -74,9 +74,9 @@
 </header>
 
       <div class="outer">
-        <section id="main"><article id="post-inputmethod" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+        <section id="main"><article id="post-ime-research" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
   <div class="article-meta">
-    <a href="/2023/03/03/inputmethod/" class="article-date">
+    <a href="/2023/03/03/ime-research/" class="article-date">
   <time class="dt-published" datetime="2023-03-03T12:47:44.513Z" itemprop="datePublished">2023-03-03</time>
 </a>
     
@@ -96,39 +96,42 @@
     
     <div class="e-content article-entry" itemprop="articleBody">
       
-        <p>如何用全局快捷键, 切换到指定输入法? 一种思路是用窗口事件，另一种是ActivateKeyboardLayout。后者有待研究, 但至少前者是管用的，并将在下文叙述。</p>
+        <p>源自我的知乎回答: <a target="_blank" rel="noopener" href="https://www.zhihu.com/question/381963138/answer/2876498622">win10如何切换输入法？</a></p>
+<p>如何用全局快捷键, 切换到指定输入法? 一种思路是用窗口事件，另一种是ActivateKeyboardLayout。后者有待研究, 但至少前者是管用的，并将在下文叙述。</p>
 <p>在下文所述切输入法方法的基础上，加以完善，就能实现完整可用的程序。具体的完善方法为：写一个后台服务, 捕获全局快捷键, 获得当前焦点窗口的hWnd, 然后按下文所述方法，给它发切输入法的消息。</p>
-<p>概念说明：<br>根据：</p>
-<p>Manage the input and display language settings in Windows - Microsoft Support</p>
+<h1 id="概念说明："><a href="#概念说明：" class="headerlink" title="概念说明："></a>概念说明：</h1><p>根据：</p>
+<p><a target="_blank" rel="noopener" href="https://support.microsoft.com/en-us/windows/manage-the-input-and-display-language-settings-in-windows-12a10cb4-8626-9b77-0ccb-5013e0c7c7a2#:~:text=To%20switch%20the%20keyboard%20layout%20you%27re%20using%20in%20Windows,through%20all%20your%20installed%20keyboards.">Manage the input and display language settings in Windows - Microsoft Support</a></p>
 <p>得出，KeyboardLayout指Tray里的方框。</p>
 <p>根据：</p>
-<p>Using an Input Method Editor in a Game - Win32 apps | Microsoft Learn</p>
+<p><a target="_blank" rel="noopener" href="https://learn.microsoft.com/en-us/windows/win32/dxtecharts/using-an-input-method-editor-in-a-game">Using an Input Method Editor in a Game - Win32 apps | Microsoft Learn</a></p>
 <p>得出，此方框也叫Input Locale Indicator。</p>
 <p>根据：</p>
-<p>About Input Method Manager - Win32 apps | Microsoft Learn</p>
+<p><a target="_blank" rel="noopener" href="https://learn.microsoft.com/en-us/windows/win32/intl/about-input-method-manager">About Input Method Manager - Win32 apps | Microsoft Learn</a></p>
 <p>IMM只在安装了东亚Locale时，才会启用；IMM会创造IME。</p>
-<p>对于自己调整自己的命令行程序举例:<br>在Console的子进程里自娱自乐是没用的, 必须让ConsoleWindow去做这事儿才有用。</p>
+<h1 id="对于自己调整自己的命令行程序举例"><a href="#对于自己调整自己的命令行程序举例" class="headerlink" title="对于自己调整自己的命令行程序举例:"></a>对于自己调整自己的命令行程序举例:</h1><p>在Console的子进程里自娱自乐是没用的, 必须让ConsoleWindow去做这事儿才有用。</p>
 <p>具体的方法就是, 给ConsoleWindow一个事件, 指挥它改变键盘布局。</p>
-<p>#include &lt;Windows.h&gt;<br>#include &lt;winuser.h&gt;<br>#include <iostream><br>int main() {<br>    while (true) {<br>        HWND hCon &#x3D; GetConsoleWindow();<br>        DWORD dwNewKeybLayout &#x3D; 0x00000409; &#x2F;&#x2F; Layout must be already loaded!<br>        PostMessage(hCon, WM_INPUTLANGCHANGEREQUEST, 0, (LPARAM)dwNewKeybLayout);<br>        PostMessage(hCon, WM_INPUTLANGCHANGE, 0, (LPARAM)dwNewKeybLayout);<br>        std::cin.get();<br>    }<br>    return 0;<br>}<br>此法的原理可根据：</p>
-<p>WM_INPUTLANGCHANGEREQUEST message (Winuser.h) - Win32 apps | Microsoft Learn</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;Windows.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;winuser.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;iostream&gt;</span></span></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="keyword">while</span> (<span class="literal">true</span>) &#123;</span><br><span class="line">        HWND hCon = <span class="built_in">GetConsoleWindow</span>();</span><br><span class="line">        DWORD dwNewKeybLayout = <span class="number">0x00000409</span>; <span class="comment">// Layout must be already loaded!</span></span><br><span class="line">        <span class="built_in">PostMessage</span>(hCon, WM_INPUTLANGCHANGEREQUEST, <span class="number">0</span>, (LPARAM)dwNewKeybLayout);</span><br><span class="line">        <span class="built_in">PostMessage</span>(hCon, WM_INPUTLANGCHANGE, <span class="number">0</span>, (LPARAM)dwNewKeybLayout);</span><br><span class="line">        std::cin.<span class="built_in">get</span>();</span><br><span class="line">    &#125;</span><br><span class="line">	<span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>此法的原理可根据：</p>
+<p><a target="_blank" rel="noopener" href="https://learn.microsoft.com/en-us/windows/win32/winmsg/wm-inputlangchangerequest">WM_INPUTLANGCHANGEREQUEST message (Winuser.h) - Win32 apps | Microsoft Learn</a></p>
 <p>得出。原理可根据文中一个例子轻易看出，在此简单地转述原文的意思：</p>
 <p>一般来讲，手动点Tray切输入法，或者按Win+Space切换输入法时，操作系统会给所在焦点窗口发送该事件；窗口可以捕获并拒绝该事件，但也可置之不理，任凭转发给操作系统。这样就完成了输入法的切换。</p>
 <p>转述完毕。</p>
 <p>注意，此方法也有副作用，那就是此Console所在Window下的所有进程的KeyboardLayout都将受到波及。</p>
-<p>对于IMM的评论:<br>至于IMM, 经过我的研究, 它一般只能和当前IME做协作, 顶多切换全半角, 而对改变布局毫无帮助。</p>
-<p>其他有用的参考资料：<br>此问答提供了代码中消息切输入法的思想：</p>
-<p>c++ - LoadKeyboardLayout doesn’t change keyboard layout - Stack Overflow</p>
+<h1 id="对于IMM的评论"><a href="#对于IMM的评论" class="headerlink" title="对于IMM的评论:"></a>对于IMM的评论:</h1><p>至于IMM, 经过我的研究, 它一般只能和当前IME做协作, 顶多切换全半角, 而对改变布局毫无帮助。</p>
+<h1 id="其他有用的参考资料："><a href="#其他有用的参考资料：" class="headerlink" title="其他有用的参考资料："></a>其他有用的参考资料：</h1><p>此问答提供了代码中消息切输入法的思想：</p>
+<p><a target="_blank" rel="noopener" href="https://stackoverflow.com/questions/49210290/loadkeyboardlayout-doesnt-change-keyboard-layout">c++ - LoadKeyboardLayout doesn’t change keyboard layout - Stack Overflow</a></p>
 <p>此问答给出了IME的许多有益资料：</p>
-<p>windows - how do you use IME? - Stack Overflow</p>
+<p><a target="_blank" rel="noopener" href="https://stackoverflow.com/questions/434048/how-do-you-use-ime">windows - how do you use IME? - Stack Overflow</a></p>
 <p>此博客给出了许多常见中文输入法的IMM API调用结果例子：</p>
-<p>[Imm]Imm API学习笔记——输入法属性 - zyl910 - 博客园 (cnblogs.com)</p>
+<p><a target="_blank" rel="noopener" href="https://www.cnblogs.com/zyl910/archive/2006/06/04/2186644.html">[Imm]Imm API学习笔记——输入法属性 - zyl910 - 博客园 (cnblogs.com)</a></p>
 <p>此文档给出了IMM函数的列表，据说很多imm.h头文件里的签名没有在此罗列：</p>
-<p>Input Method Manager Functions - Win32 apps | Microsoft Learn</p>
+<p><a target="_blank" rel="noopener" href="https://learn.microsoft.com/en-us/windows/win32/intl/input-method-manager-functions">Input Method Manager Functions - Win32 apps | Microsoft Learn</a></p>
 
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://example.com/2023/03/03/inputmethod/" data-id="clesjeei20001sgju59daazd9" data-title="Win10控制台应用IME研究" class="article-share-link">Share</a>
+      <a data-url="http://example.com/2023/03/03/ime-research/" data-id="clf0uds2s0000o0ju88vne5gg" data-title="Win10控制台应用IME研究" class="article-share-link">Share</a>
       
       
       
@@ -195,7 +198,7 @@
       <ul>
         
           <li>
-            <a href="/2023/03/03/inputmethod/">Win10控制台应用IME研究</a>
+            <a href="/2023/03/03/ime-research/">Win10控制台应用IME研究</a>
           </li>
         
           <li>
