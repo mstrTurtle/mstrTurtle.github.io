@@ -71,72 +71,6 @@
       <div class="outer">
         <section id="main">
   
-    <article id="post-cpp-encoding" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
-  <div class="article-meta">
-    <a href="/2023/03/03/cpp-encoding/" class="article-date">
-  <time class="dt-published" datetime="2023-03-03T12:51:40.576Z" itemprop="datePublished">2023-03-03</time>
-</a>
-    
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="p-name article-title" href="/2023/03/03/cpp-encoding/">c++编译中的乱码分析</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="e-content article-entry" itemprop="articleBody">
-      
-        <h1 id="A-对g-编译器的常见解决方法"><a href="#A-对g-编译器的常见解决方法" class="headerlink" title="A. 对g++编译器的常见解决方法"></a>A. 对g++编译器的常见解决方法</h1><p>如果你用的是g++编译器，而且跑在cmd里，在最常见的情况下，只要在程序的开头切换cmd的字符编码即可（对于更复杂的情况，可参见后文说明）：</p>
-<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;cstdlib&gt;</span></span></span><br><span class="line"><span class="keyword">using</span> <span class="keyword">namespace</span> std;</span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">()</span></span>&#123;</span><br><span class="line">    <span class="built_in">system</span>(<span class="string">&quot;chcp 65001&quot;</span>);</span><br><span class="line">    cout &lt;&lt; <span class="string">&quot;这是汉字&quot;</span> &lt;&lt; endl;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>这个chcp 65001是一句cmd指令，用来把终端的活动页(So called “Code Page”)切换成UTF-8（所谓的CP 65001）。 换句话说，它指示终端，把传入的字节流，按UTF-8来翻译。</p>
-<h1 id="B-乱码原因的解释，以及g-情况的分析"><a href="#B-乱码原因的解释，以及g-情况的分析" class="headerlink" title="B. 乱码原因的解释，以及g++情况的分析"></a>B. 乱码原因的解释，以及g++情况的分析</h1><p>为什么它会显示乱码呢，请看以下解释：</p>
-<h2 id="B1-讨论编译使用的三个字符集："><a href="#B1-讨论编译使用的三个字符集：" class="headerlink" title="B1. 讨论编译使用的三个字符集："></a>B1. 讨论编译使用的三个字符集：</h2><p>所谓字符集，就是同一种信息的不同表示（比如，复数的本质就是数系中一个数，但可以用坐标、相角、自然数指数这三种办法表示）。换句话说，信息就是信息，而编码是“约定”。同样的，你的源文件、编译器运行时内存中、编译后生成的二进制可执行文件，三者之中的“字符串”编码，都是同一种信息的不同表示。</p>
-<p>那么，编译字符集分成三个部分：“源码字符集”、“编译器字符集”、“执行字符集”。编译器编译时，把源码的表示转成编译器内部的表示，然后又转成最后二进制表示。而当程序运行，直接向标准输出流输出（也就是cout, printf干的事情），实际上是把二进制表示的那堆东西直接塞进终端里了。</p>
-<h2 id="B2-讨论终端字符集、编辑器字符集："><a href="#B2-讨论终端字符集、编辑器字符集：" class="headerlink" title="B2. 讨论终端字符集、编辑器字符集："></a>B2. 讨论终端字符集、编辑器字符集：</h2><p>终端和编辑器，接收的都是编码后的字节流，并且通过配置中的字符集选项（有些编辑器会根据字节流特征，去猜测字符集），来对字节流进行翻译。但凡它们没有配置正确，翻译流程就会出错，看到的东西就是乱码了（毕竟你可以把屏幕上出现的字样，也当做一种“表示”）。</p>
-<p>承接上文，终端收到字节流，按终端配置的字符集来翻译这字节流。如果对不上，则乱码就产生了。</p>
-<h2 id="B3-对于C-语言标准本身："><a href="#B3-对于C-语言标准本身：" class="headerlink" title="B3. 对于C++语言标准本身："></a>B3. 对于C++语言标准本身：</h2><p>如果足够留心，会发现C++11之后，语言标准中出现了u8，u16，u32这样的字符串前缀。它的意思就是，指示编译器，将字面量转成对应编码（如utf8，utf16，unicode这三种），放在二进制可执行文件中。当然了，转换成功的前提，是你正确指示了源码字符集。</p>
-<h2 id="B4-回到g-，分析它的典型情形，以及它的特别功能："><a href="#B4-回到g-，分析它的典型情形，以及它的特别功能：" class="headerlink" title="B4. 回到g++，分析它的典型情形，以及它的特别功能："></a>B4. 回到g++，分析它的典型情形，以及它的特别功能：</h2><p>g++默认当你输入的是UTF-8格式（即源码字符集），编译时翻译后，又默认把它按UTF-8编码硬编码抄进二进制文件里（即二进制字符集）。但是当你把它打进终端，终端用的是默认的ANSI（在中文系统里也就是GBK了）翻译方案做的翻译，编码标识都不一致，出现乱码也就不奇怪了。</p>
-<p>事实上，对于g++，可以明确地指定编译器的“源码字符集”，以及“执行字符集”（编译器内部表示，我们是管不着了）：</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">g++ -finput-charset=GBK main.cpp -o main.exe</span><br><span class="line">g++ -fexec-charset=GBK main.cpp -o main.exe</span><br></pre></td></tr></table></figure>
-<p>请看上面代码块，-finput-charset&#x3D;GBK, -fexec-charset&#x3D;GBK，这两个选项就是在指定“源码字符集”、“执行字符集”。</p>
-<h2 id="B5-形式化地描述这个过程"><a href="#B5-形式化地描述这个过程" class="headerlink" title="B5. 形式化地描述这个过程"></a>B5. 形式化地描述这个过程</h2><p>下图中，<br> 代表消息，给<br> 裹上<br> 代表编码，去掉一层<br> 代表解码。<br> 表示<br> 中信息的状态为<br> 。</p>
-<p>见上图，Editor编辑器中，信息M没有编码。而Source源文件，只是传递过程中的东西，它被编码了一次（裹了一层F），到了编译器Compiler，需要把F剥下来，即解码。然后又包裹F，即编码。编译器输出的字面量Literal，在执行时不会被解码（即没有把F剥掉），原样地变成了字节流ByteStream，又到Terminal，此时F被剥掉了，即解码。</p>
-<h1 id="C-对Visual-Studio情况的分析"><a href="#C-对Visual-Studio情况的分析" class="headerlink" title="C. 对Visual Studio情况的分析"></a>C. 对Visual Studio情况的分析</h1><h2 id="C1-一个常见的情况："><a href="#C1-一个常见的情况：" class="headerlink" title="C1. 一个常见的情况："></a>C1. 一个常见的情况：</h2><p>用代码里的字符串写一个文本文件，然后指定文本编辑器，让它用UTF-8打开，发现乱码了。</p>
-<p>这是因为，visual studio默认把源码当成ANSI编码的（对于大陆用户，ANSI一般就是GBK），且二进制可执行文件中，默认放的也是ANSI。程序执行的时候，又把ANSI编码的字节流塞进文件里了，用户又用UTF-8打开，于是造成乱码。</p>
-<h2 id="C2-Visual-Studio的特别性质："><a href="#C2-Visual-Studio的特别性质：" class="headerlink" title="C2. Visual Studio的特别性质："></a>C2. Visual Studio的特别性质：</h2><p>1，VS这个编辑器，创建新文件后，默认保存的文件格式是ANSI。但可以通过“文件”-“保存为编码”来保存成其他编码（西欧，GBK，UTF-8等）。</p>
-<p>2，Visual Studio默认使用Visual C++作为编译器。此编辑器默认将源码文件当做是ANSI编码的。最近的实验特性也可以手动调成UTF-8。此时需要注意，你指示它，把你的源码当成UTF-8，那么你的源文件表示，也得真的是UTF-8。这需要通过第一点中提到的保存方法来完成。</p>
-<h1 id="D-运行时编码转换的操作"><a href="#D-运行时编码转换的操作" class="headerlink" title="D. 运行时编码转换的操作"></a>D. 运行时编码转换的操作</h1><p>在代码运行时，二进制字符表示有问题，终端又调不了字符集，此时也是有办法的。</p>
-<h2 id="D1-Windows下的编码转换："><a href="#D1-Windows下的编码转换：" class="headerlink" title="D1. Windows下的编码转换："></a>D1. Windows下的编码转换：</h2><p>windows.h中有个现成的（能直接把ANSI翻成指定编码）</p>
-<p>win10最近有个叫ICU的，不过如果用这个的话要添加库依赖了，因为并不是标准库的组件。</p>
-<h2 id="D2-Linux下的编码转换："><a href="#D2-Linux下的编码转换：" class="headerlink" title="D2. Linux下的编码转换："></a>D2. Linux下的编码转换：</h2><p>而linux下有iconv。</p>
-<h1 id="E-对unicode的进一步的讨论"><a href="#E-对unicode的进一步的讨论" class="headerlink" title="E. 对unicode的进一步的讨论"></a>E. 对unicode的进一步的讨论</h1><h2 id="E1-操作系统现状"><a href="#E1-操作系统现状" class="headerlink" title="E1. 操作系统现状"></a>E1. 操作系统现状</h2><p>linux中的文件，普遍用的是UTF8，这是很好的；但终端编码五花八门。想要检测它，也不是容易的事情（debian用的是C.UTF8，但其它系统懒得跟进）。而至于windows，win10的系统设置里有个beta选项，让windows默认用utf-8，但打开了的话，很多中文软件会出现乱码问题。</p>
-<h2 id="E2-UTF-8的优缺点"><a href="#E2-UTF-8的优缺点" class="headerlink" title="E2. UTF-8的优缺点"></a>E2. UTF-8的优缺点</h2><p>utf8，作为一种设计得很聪明的字符编码，其实用在匹配，存储等方面时，它的性质是很良好的。也就是说，你用std::string来存utf8，匹配子串的时候可以直接用标准库自带的版本。对于遍历字符串，或者字数统计的情形，这种变长编码就得自己想办法解决，此时确实比不上多字节，但遇到的机会是比较少的。</p>
-<h2 id="E3-扩展阅读"><a href="#E3-扩展阅读" class="headerlink" title="E3. 扩展阅读"></a>E3. 扩展阅读</h2><p>关于Unicode的具体知识，可以参照Victor Stinner的著作Programming with Unicode，里面讨论了一般的Unicode话题，以及主流操作系统和几门编程语言中的相关工具和API。</p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://example.com/2023/03/03/cpp-encoding/" data-id="clesjeehp0000sgju842k2pa4" data-title="c++编译中的乱码分析" class="article-share-link">Share</a>
-      
-      
-      
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/C/" rel="tag">C++</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E7%BC%96%E7%A0%81/" rel="tag">编码</a></li></ul>
-
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
     <article id="post-inputmethod" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
   <div class="article-meta">
     <a href="/2023/03/03/inputmethod/" class="article-date">
@@ -699,6 +633,157 @@
 
 
   
+    <article id="post-opengl" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2022/12/12/opengl/" class="article-date">
+  <time class="dt-published" datetime="2022-12-12T07:47:35.105Z" itemprop="datePublished">2022-12-12</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2022/12/12/opengl/">OpenGL各种东西详解</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <h1 id="glut-freeglut-glfw"><a href="#glut-freeglut-glfw" class="headerlink" title="glut, freeglut, glfw"></a>glut, freeglut, glfw</h1><ol>
+<li>glut<ul>
+<li>gl util tools</li>
+<li>定义以及控制视窗</li>
+<li>侦测并处理键盘和鼠标事件</li>
+<li>以一个函数呼叫绘制某些常用立体图形,如长方体,球,犹他茶壶</li>
+<li>提供了简单选单列的实现</li>
+</ul>
+</li>
+</ol>
+<p>所有glut的库函数均已glut开头, 例如glutPostRedisplay(). 后来以及停止维护了</p>
+<ol start="2">
+<li><p>freeglut<br> glut的替代品,最新稳定的版本是Freeglut3.0.0 (2015年3月7日)</p>
+</li>
+<li><p>glfw</p>
+<ul>
+<li>gl framework</li>
+<li>创建管理窗口和opengl的上下文</li>
+<li>处理手柄,键盘,鼠标输入</li>
+<li>目前glfw还在维护,可以说glfw库可以是代替glut和freeglut的库的</li>
+</ul>
+</li>
+</ol>
+<h1 id="glew-glad-gl3w"><a href="#glew-glad-gl3w" class="headerlink" title="glew, glad, gl3w"></a>glew, glad, gl3w</h1><p>opengl是一个标准&#x2F;规范, 具体的实现是由驱动开发商针对特定的显卡而实现.支持opengl的驱动版本众多,大多数函数的地址(内存地址)无法在编译时候确定下来,需要运行的时候查询.所以在运行的时候获取函数的内存地址并把其保存在一个函数指针中供后续使用. glew, glad, gl3w基本都是实现类似的功能</p>
+<p>glew,<br>    opengl32.dll仅仅为用户提供了统一API的接口以及扩展这些接口的可能, opengl32.dll被加载后尝试调用更底层的ICD驱动程序,从而完成具体的图形操作. 而GLEW这些库,根据opengl的接口说明,从动态库(opengl32.dll)中请求对应的函数接口,如果能得到有效地址,那么这个函数是被当前驱动所支持的,就可以用,否则就无法支持.实际上,你也可以根据你当前应用中使用到的函数(通常一个小的演示demo,如显示一个三角形,并没有使用到很多的gl函数)而获取函数接口也是完全可行的. glew,glad,gl3w这些库帮助用户完成了所有接口的查询和获取.</p>
+<p>glad,<br>gl3w</p>
+<p>但是gl3w是利用python开发的, 因此需要安装python库进行编译生成相关的文件,具体的流程可以参考<a target="_blank" rel="noopener" href="https://links.jianshu.com/go?to=https://blog.csdn.net/jiuzaizuotian2014/article/details/82915917">基于GLFW和GL3W库的OPEN GL环境配置</a></p>
+<p>结论: 可以用上面两类的库进行组合,例如我自己常用的是glfw + glad来进行opengl的开发, 也有很多开发者使用的是glfw + gl3w, 或者 glfw + glew</p>
+<h1 id="另一篇说的"><a href="#另一篇说的" class="headerlink" title="另一篇说的"></a>另一篇说的</h1><p>opengl原生库?<strong>gl</strong></p>
+<p>随opengl一起发布</p>
+<p>opengl实用库?<strong>glu</strong><br>随opengl一起发布</p>
+<p>opengl实用工具库glut?<strong>glut</strong><br>需要下载配置安装(太老了！)</p>
+<p>opengl实用工具库开源版本freeglut?<strong>freeglut</strong><br>需要下载配置安装(完全兼容glut，算是glut的代替品，但是bug较多！)</p>
+<p>opengl GLFW库?<strong>glfw</strong><br>需要下载配置安装(轻量级的，开源的，跨平台的library，新技术)</p>
+<p>opengl GLEW库?<strong>glew</strong><br>需要下载配置安装<br>跨平台的C++扩展库，它的出现是为了方便的管理平台与opengl版本不匹配，以及方便的解决不同显卡特有的硬件接口支持。<br>只要包含一个glew.h头文件，你就能使用gl,glu,glext,wgl,glx的全部函数。</p>
+<p>opengl核心文件加载库gl3w?<strong>gl3w</strong><br>gl3w是获取OpenGL核心配置文件规范所提供功能的最简单方法。</p>
+<p>opengl库glad?<strong>glad</strong><br>基于官方规格的多语言GL &#x2F; GLES &#x2F; EGL &#x2F; GLX &#x2F; WGL装载机 - 生成器。<br>一般结合GLFW使用。</p>
+<table>
+<thead>
+<tr>
+<th>名称</th>
+<th>功能</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>gl</td>
+<td>核心库</td>
+<td>随opengl一起发布. 貌似只是规范, 里面的函数只是签名, 没有链接?</td>
+</tr>
+<tr>
+<td>glu</td>
+<td>实用工具</td>
+<td>随opengl一起发布</td>
+</tr>
+<tr>
+<td>glut</td>
+<td>很老的util</td>
+<td>貌似是glfw+glew?20年没维护, 建议别用</td>
+</tr>
+<tr>
+<td>freeglut</td>
+<td>没那么老的util</td>
+<td>glut继任者, 貌似也废了</td>
+</tr>
+<tr>
+<td>glfw</td>
+<td>靠谱的util, 即framework</td>
+<td>帮你得到Window和OpenGL Rendering Context</td>
+</tr>
+<tr>
+<td>glew</td>
+<td>OpenGL Extension Wrangler</td>
+<td>即,把显卡驱动里写好的dll嫁接到glew的函数指针上</td>
+</tr>
+<tr>
+<td>gl3w</td>
+<td>同上</td>
+<td>这貌似用Python写的</td>
+</tr>
+<tr>
+<td>glad</td>
+<td>同上</td>
+<td></td>
+</tr>
+</tbody></table>
+<p>glfw is:</p>
+<p><em>a library that helps you to manage such things as window, its size, params, basic input and events-stuff. GLEW needs a window and a valid OpenGL context to be setup, and that’s exactly where GLFW comes in handy.</em></p>
+<p>glfw is:<br><em>Open source, portable framework for OpenGL application development with a link library for handling operating system specific tasks, such as opening an OpenGL window and reading keyboard, mouse and joystick input.</em></p>
+<p>What is also interesting that these libraries were made not just to make your developing life easier, but also your <strong>deployment faster</strong>. GLEW and GLFW are kind of cross-platform so you don’t have to write different versions of the same application on different platforms.</p>
+<p>As practice shows, GLEW&#x2F;GLAD + GLFW is a common use for modern computer graphics based on OpenGL. You?<em>could</em>, however, choose other libraries for a reason, based on what you need. But the general approach is to use these, because they support the latest versions of OpenGL, and always get updated.</p>
+<p>EDIT</p>
+<p>GLUT and GLFW are basically the same, but what you need to know is that the original GLUT has been unsupported for 20 years, and there is a free open-source alternative for it called freeglut. So, I guess that is what you mean by “deprecated” :)</p>
+<p>COMMENT</p>
+<p>GLFW purpose is to manage OpenGL contexts and basics of window-, keyboard-, event-handling. </p>
+<p>It does not do automatic extension loading, so without a loader like glad, you can only use what the system provides on its own (which could also be the current version). </p>
+<p>But you can load extensions&#x2F;functions manually using GLFW, so you indeed could use modern OpenGL using only GLFW.</p>
+<p>COMMENT</p>
+<p>OpenGL is already developed by the GPU manufacturers, saved as binary file in the graphics drive. </p>
+<p>You can use it without any additional libraries. However, this would be complicated, especially for unexperienced developers. </p>
+<p>For simplification, you can use any opengl loader library (<code>FreeGlut, Glad, Glew, GLUT</code>) + for windowing can use?<code>GLFW</code>. GLUT is often not recommended, and?<code>FreeGLUT</code>?and?<code>GLEW</code>?are widely used. You can use?<code>microsoft vcpkg</code>?to install these libraries.</p>
+<h1 id="没glut-glew怎么套到现代函数"><a href="#没glut-glew怎么套到现代函数" class="headerlink" title="没glut glew怎么套到现代函数?"></a>没glut glew怎么套到现代函数?</h1><p><a target="_blank" rel="noopener" href="https://mariuszbartosik.com/opengl-4-x-initialization-in-windows-without-a-framework/">OpenGL 4.x Initialization in Windows without a Framework (mariuszbartosik.com)</a></p>
+<p>怎么不用glut和glew, 空手套到现代OpenGL高版本函数.</p>
+<p>首先, XP之后, 即Vista开始, 由于API之争, 微软的WindowsSDK只给你OpenGL1.1的gl.h. 但它的opengl32.dll给你一个wglGetProcAddress()方法, 可以用来套那些高版本OpenGL函数.</p>
+<p>但这个wglGetProcAddress()需要一个OpenGL rendering context. 这就需要想想办法.</p>
+<p>正常情况, 你通过<code>GetDC()</code>获得Device Context, 然后, pick a hardware accelerated pixel format with?<code>ChoosePixelFormat()</code>?and associate it with Device Context using?<code>SetPixelFormat()</code>. Then you can create Rendering Context with?<code>wglCreateContext()</code>?and set it as current with?<code>wglMakeCurrent()</code>. Load new OpenGL functions with?<code>wglGetProcAddress()</code>?and you are ready to use them.</p>
+<p>The problem with old?<code>ChoosePixelFormat()</code>?and?<code>wglCreateContext()</code>?is that they are not extensible. For example, the first one uses fixed?<code>PIXELFORMATDESCRIPTOR</code>?structure and there is no field you could set to indicate that you want to request multisampling, sRGB format or floating-point framebuffer support. Using the later one, you cannot ask for specific OpenGL profile or version.</p>
+<p>To remedy this, new functions have been created, namely?<code>wglChoosePixelFormatARB()</code>?and?<code>wglCreateContextAttribsARB()</code>. Both of them accepts lists of attributes, so they can support any number of options. There is a small problem, though. To create a rendering context using them, you have to get their function pointers, and for this, you need a rendering context.</p>
+<p>Luckily, this can be solved by creating a dummy window and context with old functions, getting new function pointers and creating window and context in the desired format.</p>
+<p>接下来就是一波操作. 首先先拉个旧窗口, 用<code>PIXELFORMATDESCRIPTOR</code>随便糊个窗口, 然后用那些ARB函数, 设置PixelFormat, 弄出个能用的Rendering COntext. 最后用这个Context去套OpenGL函数.</p>
+<p>现在, 引入OpenGL委员会给的高版本头文件, 你就能把套来的函数地址, 绑到它给的签名上去用了!</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2022/12/12/opengl/" data-id="clbkhsitc0000lsju3gd649eg" data-title="OpenGL各种东西详解" class="article-share-link">Share</a>
+      
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/OpenGL/" rel="tag">OpenGL</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
 
 
   <nav id="page-nav">
@@ -736,7 +821,7 @@
   <div class="widget-wrap">
     <h3 class="widget-title">Archives</h3>
     <div class="widget">
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/03/">March 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/01/">January 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/12/">December 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/10/">October 2022</a></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/03/">March 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/01/">January 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/12/">December 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/10/">October 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/01/">January 2022</a></li></ul>
     </div>
   </div>
 
@@ -747,10 +832,6 @@
     <h3 class="widget-title">Recent Posts</h3>
     <div class="widget">
       <ul>
-        
-          <li>
-            <a href="/2023/03/03/cpp-encoding/">c++编译中的乱码分析</a>
-          </li>
         
           <li>
             <a href="/2023/03/03/inputmethod/">Win10控制台应用IME研究</a>
@@ -766,6 +847,10 @@
         
           <li>
             <a href="/2023/03/03/jboss/">JBoss社区好的东西</a>
+          </li>
+        
+          <li>
+            <a href="/2023/01/15/cond-variable/">对条件变量cv的思考</a>
           </li>
         
       </ul>
