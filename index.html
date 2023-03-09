@@ -71,6 +71,56 @@
       <div class="outer">
         <section id="main">
   
+    <article id="post-dynamic-cast" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2023/03/09/dynamic-cast/" class="article-date">
+  <time class="dt-published" datetime="2023-03-08T16:00:00.000Z" itemprop="datePublished">2023-03-09</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2023/03/09/dynamic-cast/">dynamic_cast与虚继承</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <h1 id="虚继承-虚函数-虚表-dynamic-cast"><a href="#虚继承-虚函数-虚表-dynamic-cast" class="headerlink" title="虚继承, 虚函数, 虚表, dynamic_cast."></a>虚继承, 虚函数, 虚表, dynamic_cast.</h1><p>这些都在:  <em>CppCon dynamic_cast from scratch Arthur O’Dwyer 2017-09-26</em> 里面有讲. 里面给出了CatDog例子, 给出了详细的虚表样例, 以及给出作者自己的实现, 并且对照了Itanium ABI和微软ABI.</p>
+<p>虚继承, 比如菱形继承的”Animal Cat Dog CatDog”, Animal就会有两份.</p>
+<p>CppCon那个CatDog示例里, 有个类布局图(data layout). 可以看到不virtual继承的话, 一个CatDog实例会躺着两个Animal.</p>
+<p>CatDog中, 你也不能把一个CatDog指针直接转成Cat或者Dog类型指针, 因为指针指的是你的内存布局顶部, 但Cat Dog躺在哪儿还说不准呢, 反正肯定不是内存布局顶部.</p>
+<p>虚函数就对应了虚函数表(通常称为虚表). g++有虚函数表, 没有虚继承表. VS据说有虚继承表. 某<em>中间导出类型</em>的<em>子虚表</em>的-1下标处, 即vptr-1那个位置, 放着个指向type_info的指针. 在vptr-2处, 甚至有md-offset, 即”最大导出类型most-derived偏移”, 是从”子虚表”到达”最大导出虚表”的位移量! Cat的再往这前面(vptr-3之类), 竟然还有从md指向Animal的offset(当然这是Itanium ABI的格式)</p>
+<p>众所皆知类实例只是放数据的地方, 函数本体都在前面代码区放着. 有些函数调用能在编译期锁定位置, 而有些不能, 需要动态锁定. 此时vptr和vtbl就是媒介. 编译期总能确定函数名, 而运行期类实例自带一个vptr. 运行期调用函数时, 会去找vptr, 指向它所属类的vtbl, 然后加上一个编译期已知的偏移量. 这样就找到了真实类的对应函数.</p>
+<p>多继承会造成有多个vptr, 比如CatDog那个, 若Animal不弄成虚基类, 那么Cat和Dog的Animal会各自有个vptr. 如果菱形继承, 甚至Animal被弄到data layout下面去了, 现在有3个vptr. </p>
+<p>光是多继承倒还好, 毕竟Cat, Dog, CatDog的data layout和函数指针都是concret的. 但当引入虚基类, 一个<code>Cat*</code>底下的数据布局将不再确定! 它底下的Animal可能在布局的前面, 也可能在它后面不远处.</p>
+<p>你的”最大导出类型”(most-derived class, MDC)决定了一个虚表. 在最大导出类型和最基本类型中间卡着的那些类型, 它们的vptr都是去找这虚表里的东西的. 也就是说, 中间导出类型对应的虚表是”子虚表”. 当给出一个”最大导出类型”和”中间导出类型”, 就能决定一些具体的虚表项.</p>
+<p>至于dynamic_cast, 它能在菱形继承中, 把一个本体是CatDog的指Cat的指针转成指Dog指针, 相应地赋予位置上的改变. 它利用的是type_info提供的RAII功能, 先看看它真的类型(type_info里有标), 得出编译期弄出来的饱含语义信息的继承图(必须由编译器生成这些额外信息, 否则运行时是弄不出来这些的). 图的连边饱含了转换信息(如non-public继承不能转, 其他那些继承的转换在连边处给出了offset). 然后用DFS的法子找到路, 并一步步转过去.</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2023/03/09/dynamic-cast/" data-id="clf180c950000ewjueswf306b" data-title="dynamic_cast与虚继承" class="article-share-link">Share</a>
+      
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/C/" rel="tag">C++</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
     <article id="post-ime-research" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
   <div class="article-meta">
     <a href="/2023/03/03/ime-research/" class="article-date">
@@ -636,157 +686,6 @@
 
 
   
-    <article id="post-opengl" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
-  <div class="article-meta">
-    <a href="/2022/12/12/opengl/" class="article-date">
-  <time class="dt-published" datetime="2022-12-12T07:47:35.105Z" itemprop="datePublished">2022-12-12</time>
-</a>
-    
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="p-name article-title" href="/2022/12/12/opengl/">OpenGL各种东西详解</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="e-content article-entry" itemprop="articleBody">
-      
-        <h1 id="glut-freeglut-glfw"><a href="#glut-freeglut-glfw" class="headerlink" title="glut, freeglut, glfw"></a>glut, freeglut, glfw</h1><ol>
-<li>glut<ul>
-<li>gl util tools</li>
-<li>定义以及控制视窗</li>
-<li>侦测并处理键盘和鼠标事件</li>
-<li>以一个函数呼叫绘制某些常用立体图形,如长方体,球,犹他茶壶</li>
-<li>提供了简单选单列的实现</li>
-</ul>
-</li>
-</ol>
-<p>所有glut的库函数均已glut开头, 例如glutPostRedisplay(). 后来以及停止维护了</p>
-<ol start="2">
-<li><p>freeglut<br> glut的替代品,最新稳定的版本是Freeglut3.0.0 (2015年3月7日)</p>
-</li>
-<li><p>glfw</p>
-<ul>
-<li>gl framework</li>
-<li>创建管理窗口和opengl的上下文</li>
-<li>处理手柄,键盘,鼠标输入</li>
-<li>目前glfw还在维护,可以说glfw库可以是代替glut和freeglut的库的</li>
-</ul>
-</li>
-</ol>
-<h1 id="glew-glad-gl3w"><a href="#glew-glad-gl3w" class="headerlink" title="glew, glad, gl3w"></a>glew, glad, gl3w</h1><p>opengl是一个标准&#x2F;规范, 具体的实现是由驱动开发商针对特定的显卡而实现.支持opengl的驱动版本众多,大多数函数的地址(内存地址)无法在编译时候确定下来,需要运行的时候查询.所以在运行的时候获取函数的内存地址并把其保存在一个函数指针中供后续使用. glew, glad, gl3w基本都是实现类似的功能</p>
-<p>glew,<br>    opengl32.dll仅仅为用户提供了统一API的接口以及扩展这些接口的可能, opengl32.dll被加载后尝试调用更底层的ICD驱动程序,从而完成具体的图形操作. 而GLEW这些库,根据opengl的接口说明,从动态库(opengl32.dll)中请求对应的函数接口,如果能得到有效地址,那么这个函数是被当前驱动所支持的,就可以用,否则就无法支持.实际上,你也可以根据你当前应用中使用到的函数(通常一个小的演示demo,如显示一个三角形,并没有使用到很多的gl函数)而获取函数接口也是完全可行的. glew,glad,gl3w这些库帮助用户完成了所有接口的查询和获取.</p>
-<p>glad,<br>gl3w</p>
-<p>但是gl3w是利用python开发的, 因此需要安装python库进行编译生成相关的文件,具体的流程可以参考<a target="_blank" rel="noopener" href="https://links.jianshu.com/go?to=https://blog.csdn.net/jiuzaizuotian2014/article/details/82915917">基于GLFW和GL3W库的OPEN GL环境配置</a></p>
-<p>结论: 可以用上面两类的库进行组合,例如我自己常用的是glfw + glad来进行opengl的开发, 也有很多开发者使用的是glfw + gl3w, 或者 glfw + glew</p>
-<h1 id="另一篇说的"><a href="#另一篇说的" class="headerlink" title="另一篇说的"></a>另一篇说的</h1><p>opengl原生库?<strong>gl</strong></p>
-<p>随opengl一起发布</p>
-<p>opengl实用库?<strong>glu</strong><br>随opengl一起发布</p>
-<p>opengl实用工具库glut?<strong>glut</strong><br>需要下载配置安装(太老了！)</p>
-<p>opengl实用工具库开源版本freeglut?<strong>freeglut</strong><br>需要下载配置安装(完全兼容glut，算是glut的代替品，但是bug较多！)</p>
-<p>opengl GLFW库?<strong>glfw</strong><br>需要下载配置安装(轻量级的，开源的，跨平台的library，新技术)</p>
-<p>opengl GLEW库?<strong>glew</strong><br>需要下载配置安装<br>跨平台的C++扩展库，它的出现是为了方便的管理平台与opengl版本不匹配，以及方便的解决不同显卡特有的硬件接口支持。<br>只要包含一个glew.h头文件，你就能使用gl,glu,glext,wgl,glx的全部函数。</p>
-<p>opengl核心文件加载库gl3w?<strong>gl3w</strong><br>gl3w是获取OpenGL核心配置文件规范所提供功能的最简单方法。</p>
-<p>opengl库glad?<strong>glad</strong><br>基于官方规格的多语言GL &#x2F; GLES &#x2F; EGL &#x2F; GLX &#x2F; WGL装载机 - 生成器。<br>一般结合GLFW使用。</p>
-<table>
-<thead>
-<tr>
-<th>名称</th>
-<th>功能</th>
-<th>说明</th>
-</tr>
-</thead>
-<tbody><tr>
-<td>gl</td>
-<td>核心库</td>
-<td>随opengl一起发布. 貌似只是规范, 里面的函数只是签名, 没有链接?</td>
-</tr>
-<tr>
-<td>glu</td>
-<td>实用工具</td>
-<td>随opengl一起发布</td>
-</tr>
-<tr>
-<td>glut</td>
-<td>很老的util</td>
-<td>貌似是glfw+glew?20年没维护, 建议别用</td>
-</tr>
-<tr>
-<td>freeglut</td>
-<td>没那么老的util</td>
-<td>glut继任者, 貌似也废了</td>
-</tr>
-<tr>
-<td>glfw</td>
-<td>靠谱的util, 即framework</td>
-<td>帮你得到Window和OpenGL Rendering Context</td>
-</tr>
-<tr>
-<td>glew</td>
-<td>OpenGL Extension Wrangler</td>
-<td>即,把显卡驱动里写好的dll嫁接到glew的函数指针上</td>
-</tr>
-<tr>
-<td>gl3w</td>
-<td>同上</td>
-<td>这貌似用Python写的</td>
-</tr>
-<tr>
-<td>glad</td>
-<td>同上</td>
-<td></td>
-</tr>
-</tbody></table>
-<p>glfw is:</p>
-<p><em>a library that helps you to manage such things as window, its size, params, basic input and events-stuff. GLEW needs a window and a valid OpenGL context to be setup, and that’s exactly where GLFW comes in handy.</em></p>
-<p>glfw is:<br><em>Open source, portable framework for OpenGL application development with a link library for handling operating system specific tasks, such as opening an OpenGL window and reading keyboard, mouse and joystick input.</em></p>
-<p>What is also interesting that these libraries were made not just to make your developing life easier, but also your <strong>deployment faster</strong>. GLEW and GLFW are kind of cross-platform so you don’t have to write different versions of the same application on different platforms.</p>
-<p>As practice shows, GLEW&#x2F;GLAD + GLFW is a common use for modern computer graphics based on OpenGL. You?<em>could</em>, however, choose other libraries for a reason, based on what you need. But the general approach is to use these, because they support the latest versions of OpenGL, and always get updated.</p>
-<p>EDIT</p>
-<p>GLUT and GLFW are basically the same, but what you need to know is that the original GLUT has been unsupported for 20 years, and there is a free open-source alternative for it called freeglut. So, I guess that is what you mean by “deprecated” :)</p>
-<p>COMMENT</p>
-<p>GLFW purpose is to manage OpenGL contexts and basics of window-, keyboard-, event-handling. </p>
-<p>It does not do automatic extension loading, so without a loader like glad, you can only use what the system provides on its own (which could also be the current version). </p>
-<p>But you can load extensions&#x2F;functions manually using GLFW, so you indeed could use modern OpenGL using only GLFW.</p>
-<p>COMMENT</p>
-<p>OpenGL is already developed by the GPU manufacturers, saved as binary file in the graphics drive. </p>
-<p>You can use it without any additional libraries. However, this would be complicated, especially for unexperienced developers. </p>
-<p>For simplification, you can use any opengl loader library (<code>FreeGlut, Glad, Glew, GLUT</code>) + for windowing can use?<code>GLFW</code>. GLUT is often not recommended, and?<code>FreeGLUT</code>?and?<code>GLEW</code>?are widely used. You can use?<code>microsoft vcpkg</code>?to install these libraries.</p>
-<h1 id="没glut-glew怎么套到现代函数"><a href="#没glut-glew怎么套到现代函数" class="headerlink" title="没glut glew怎么套到现代函数?"></a>没glut glew怎么套到现代函数?</h1><p><a target="_blank" rel="noopener" href="https://mariuszbartosik.com/opengl-4-x-initialization-in-windows-without-a-framework/">OpenGL 4.x Initialization in Windows without a Framework (mariuszbartosik.com)</a></p>
-<p>怎么不用glut和glew, 空手套到现代OpenGL高版本函数.</p>
-<p>首先, XP之后, 即Vista开始, 由于API之争, 微软的WindowsSDK只给你OpenGL1.1的gl.h. 但它的opengl32.dll给你一个wglGetProcAddress()方法, 可以用来套那些高版本OpenGL函数.</p>
-<p>但这个wglGetProcAddress()需要一个OpenGL rendering context. 这就需要想想办法.</p>
-<p>正常情况, 你通过<code>GetDC()</code>获得Device Context, 然后, pick a hardware accelerated pixel format with?<code>ChoosePixelFormat()</code>?and associate it with Device Context using?<code>SetPixelFormat()</code>. Then you can create Rendering Context with?<code>wglCreateContext()</code>?and set it as current with?<code>wglMakeCurrent()</code>. Load new OpenGL functions with?<code>wglGetProcAddress()</code>?and you are ready to use them.</p>
-<p>The problem with old?<code>ChoosePixelFormat()</code>?and?<code>wglCreateContext()</code>?is that they are not extensible. For example, the first one uses fixed?<code>PIXELFORMATDESCRIPTOR</code>?structure and there is no field you could set to indicate that you want to request multisampling, sRGB format or floating-point framebuffer support. Using the later one, you cannot ask for specific OpenGL profile or version.</p>
-<p>To remedy this, new functions have been created, namely?<code>wglChoosePixelFormatARB()</code>?and?<code>wglCreateContextAttribsARB()</code>. Both of them accepts lists of attributes, so they can support any number of options. There is a small problem, though. To create a rendering context using them, you have to get their function pointers, and for this, you need a rendering context.</p>
-<p>Luckily, this can be solved by creating a dummy window and context with old functions, getting new function pointers and creating window and context in the desired format.</p>
-<p>接下来就是一波操作. 首先先拉个旧窗口, 用<code>PIXELFORMATDESCRIPTOR</code>随便糊个窗口, 然后用那些ARB函数, 设置PixelFormat, 弄出个能用的Rendering COntext. 最后用这个Context去套OpenGL函数.</p>
-<p>现在, 引入OpenGL委员会给的高版本头文件, 你就能把套来的函数地址, 绑到它给的签名上去用了!</p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://example.com/2022/12/12/opengl/" data-id="clbkhsitc0000lsju3gd649eg" data-title="OpenGL各种东西详解" class="article-share-link">Share</a>
-      
-      
-      
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/OpenGL/" rel="tag">OpenGL</a></li></ul>
-
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
 
 
   <nav id="page-nav">
@@ -815,7 +714,7 @@
   <div class="widget-wrap">
     <h3 class="widget-title">Tag Cloud</h3>
     <div class="widget tagcloud">
-      <a href="/tags/C/" style="font-size: 20px;">C++</a> <a href="/tags/Java/" style="font-size: 15px;">Java</a> <a href="/tags/OpenGL/" style="font-size: 10px;">OpenGL</a> <a href="/tags/Windows/" style="font-size: 10px;">Windows</a> <a href="/tags/haskell/" style="font-size: 10px;">haskell</a> <a href="/tags/%E5%B9%B6%E5%8F%91/" style="font-size: 10px;">并发</a> <a href="/tags/%E6%9D%82%E6%84%9F/" style="font-size: 20px;">杂感</a> <a href="/tags/%E7%BC%96%E7%A0%81/" style="font-size: 15px;">编码</a>
+      <a href="/tags/C/" style="font-size: 20px;">C++</a> <a href="/tags/Java/" style="font-size: 13.33px;">Java</a> <a href="/tags/OpenGL/" style="font-size: 10px;">OpenGL</a> <a href="/tags/Windows/" style="font-size: 10px;">Windows</a> <a href="/tags/haskell/" style="font-size: 10px;">haskell</a> <a href="/tags/%E5%B9%B6%E5%8F%91/" style="font-size: 10px;">并发</a> <a href="/tags/%E6%9D%82%E6%84%9F/" style="font-size: 16.67px;">杂感</a> <a href="/tags/%E7%BC%96%E7%A0%81/" style="font-size: 13.33px;">编码</a>
     </div>
   </div>
 
@@ -837,6 +736,10 @@
       <ul>
         
           <li>
+            <a href="/2023/03/09/dynamic-cast/">dynamic_cast与虚继承</a>
+          </li>
+        
+          <li>
             <a href="/2023/03/03/ime-research/">Win10控制台应用IME研究</a>
           </li>
         
@@ -850,10 +753,6 @@
         
           <li>
             <a href="/2023/03/03/jboss/">JBoss社区好的东西</a>
-          </li>
-        
-          <li>
-            <a href="/2023/01/15/cond-variable/">对条件变量cv的思考</a>
           </li>
         
       </ul>
