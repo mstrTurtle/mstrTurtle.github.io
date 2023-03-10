@@ -93,7 +93,24 @@
     
     <div class="e-content article-entry" itemprop="articleBody">
       
-        <h1 id="虚继承-虚函数-虚表-dynamic-cast"><a href="#虚继承-虚函数-虚表-dynamic-cast" class="headerlink" title="虚继承, 虚函数, 虚表, dynamic_cast."></a>虚继承, 虚函数, 虚表, dynamic_cast.</h1><p>这些都在:  <em>CppCon dynamic_cast from scratch Arthur O’Dwyer 2017-09-26</em> 里面有讲. 里面给出了CatDog例子, 给出了详细的虚表样例, 以及给出作者自己的实现, 并且对照了Itanium ABI和微软ABI.</p>
+        <h1 id="虚继承-虚函数-虚表-dynamic-cast"><a href="#虚继承-虚函数-虚表-dynamic-cast" class="headerlink" title="虚继承, 虚函数, 虚表, dynamic_cast."></a>虚继承, 虚函数, 虚表, dynamic_cast.</h1><p>参考资料:</p>
+<ul>
+<li><em>CppCon dynamic_cast from scratch Arthur O’Dwyer 2017-09-26</em> <ul>
+<li>里面给出了CatDog例子, 给出了详细的虚表样例, 以及给出作者自己的实现, 并且对照了Itanium ABI和微软ABI.</li>
+</ul>
+</li>
+<li><a target="_blank" rel="noopener" href="https://blog.csdn.net/weixin_43798887/article/details/118541570">(68条消息) C++ RTTI详解_彼 方的博客-CSDN博客</a><ul>
+<li>这篇CSDN文章也shed some light on RTTI(typeid operator, class type_info), 又援引了三篇有用的文献.</li>
+<li>其中引用的文献:<ul>
+<li><a target="_blank" rel="noopener" href="https://blog.csdn.net/weixin_43798887/article/details/118196343">一文读懂C++虚函数的内存模型</a></li>
+<li><a target="_blank" rel="noopener" href="https://blog.csdn.net/weixin_43798887/article/details/118369498">一文读懂C++虚继承的内存模型</a></li>
+<li><a target="_blank" rel="noopener" href="https://blog.csdn.net/weixin_43798887/article/details/118424172">深入理解C++中五种强制类型转换的使用场景</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<p><strong>如是我闻:</strong></p>
 <p>虚继承, 比如菱形继承的”Animal Cat Dog CatDog”, Animal就会有两份.</p>
 <p>CppCon那个CatDog示例里, 有个类布局图(data layout). 可以看到不virtual继承的话, 一个CatDog实例会躺着两个Animal.</p>
 <p>CatDog中, 你也不能把一个CatDog指针直接转成Cat或者Dog类型指针, 因为指针指的是你的内存布局顶部, 但Cat Dog躺在哪儿还说不准呢, 反正肯定不是内存布局顶部.</p>
