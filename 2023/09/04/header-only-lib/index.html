@@ -14,7 +14,7 @@
 <meta property="og:description" content="1 Digest1.1 来源可不可以把任意一个c++库改写成纯头文件库？ - WhoTFAmI的回答 - 知乎 https:&#x2F;&#x2F;www.zhihu.com&#x2F;question&#x2F;525003410&#x2F;answer&#x2F;2420228940 1.2 前言循环依赖无需考虑，用include guard就好。 123456#ifndef XXX&#x2F;&#x2F; blah blah#endif#ifndef YYY&#x2F;&#x2F; bla">
 <meta property="og:locale" content="en_US">
 <meta property="article:published_time" content="2023-09-04T14:54:43.187Z">
-<meta property="article:modified_time" content="2023-09-04T15:02:30.339Z">
+<meta property="article:modified_time" content="2023-09-04T15:04:11.101Z">
 <meta property="article:author" content="Master Turtle">
 <meta name="twitter:card" content="summary">
   
@@ -104,11 +104,11 @@
 <figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">ifndef</span> XXX</span></span><br><span class="line"><span class="comment">// blah blah</span></span><br><span class="line"><span class="meta">#<span class="keyword">endif</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">ifndef</span> YYY</span></span><br><span class="line"><span class="comment">// blah blah</span></span><br><span class="line"><span class="meta">#<span class="keyword">endif</span></span></span><br></pre></td></tr></table></figure>
 
 <p>不是大问题。关键是链接、名字冲突问题。</p>
-<h2 id="1-3-前置知识"><a href="#1-3-前置知识" class="headerlink" title="1.3 前置知识"></a>1.3 前置知识</h2><h2 id="1-4-先不考虑多编译单元"><a href="#1-4-先不考虑多编译单元" class="headerlink" title="1.4 先不考虑多编译单元"></a>1.4 先不考虑多编译单元</h2><p>直接把各个命名空间里面冲突的函数、变量、常量、类改一个全局唯一的名字。</p>
-<h2 id="1-5-多编译单元命名冲突处理"><a href="#1-5-多编译单元命名冲突处理" class="headerlink" title="1.5 多编译单元命名冲突处理"></a>1.5 多编译单元命名冲突处理</h2><p>static&#x2F;匿名空间内的匿名 union需要改成不匿名的 union 类型 + inline 变量。</p>
-<h3 id="1-5-1-函数的处理"><a href="#1-5-1-函数的处理" class="headerlink" title="1.5.1 函数的处理"></a>1.5.1 函数的处理</h3><p>函数声明默认是extern的，函数定义默认是internal linkage的。</p>
+<h2 id="1-3-先不考虑多编译单元"><a href="#1-3-先不考虑多编译单元" class="headerlink" title="1.3 先不考虑多编译单元"></a>1.3 先不考虑多编译单元</h2><p>直接把各个命名空间里面冲突的函数、变量、常量、类改一个全局唯一的名字。</p>
+<h2 id="1-4-多编译单元命名冲突处理"><a href="#1-4-多编译单元命名冲突处理" class="headerlink" title="1.4 多编译单元命名冲突处理"></a>1.4 多编译单元命名冲突处理</h2><p>static&#x2F;匿名空间内的匿名 union需要改成不匿名的 union 类型 + inline 变量。</p>
+<h2 id="1-5-多编译单元函数的处理"><a href="#1-5-多编译单元函数的处理" class="headerlink" title="1.5 多编译单元函数的处理"></a>1.5 多编译单元函数的处理</h2><p>函数声明默认是extern的，函数定义默认是internal linkage的。</p>
 <p>函数好办，全加上inline就行。</p>
-<h3 id="1-5-2-全局变量的处理"><a href="#1-5-2-全局变量的处理" class="headerlink" title="1.5.2 全局变量的处理"></a>1.5.2 全局变量的处理</h3><p>全局变量默认是internal linkage。除非你标出了extern。</p>
+<h2 id="1-6-多编译单元全局变量的处理"><a href="#1-6-多编译单元全局变量的处理" class="headerlink" title="1.6 多编译单元全局变量的处理"></a>1.6 多编译单元全局变量的处理</h2><p>全局变量默认是internal linkage。除非你标出了extern。</p>
 <p>如果internal linkage的东西在预处理阶段被照抄进cpp，多个cpp又被ld链接器进行链接，
 那么两个编译单元里出现两个相同的定义，将会违反ODR（One Definition Rule）原则，
 造成未定义行为！</p>
