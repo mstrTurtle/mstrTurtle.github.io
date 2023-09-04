@@ -14,7 +14,7 @@
 <meta property="og:description" content="1 Digest1.1 来源可不可以把任意一个c++库改写成纯头文件库？ - WhoTFAmI的回答 - 知乎 https:&#x2F;&#x2F;www.zhihu.com&#x2F;question&#x2F;525003410&#x2F;answer&#x2F;2420228940 1.2 前言循环依赖无需考虑，用include guard就好。 123456#ifndef XXX&#x2F;&#x2F; blah blah#endif#ifndef YYY&#x2F;&#x2F; bla">
 <meta property="og:locale" content="en_US">
 <meta property="article:published_time" content="2023-09-04T14:54:43.187Z">
-<meta property="article:modified_time" content="2023-09-04T15:04:11.101Z">
+<meta property="article:modified_time" content="2023-09-04T15:15:27.484Z">
 <meta property="article:author" content="Master Turtle">
 <meta name="twitter:card" content="summary">
   
@@ -99,7 +99,7 @@
     
     <div class="e-content article-entry" itemprop="articleBody">
       
-        <h1 id="1-Digest"><a href="#1-Digest" class="headerlink" title="1 Digest"></a>1 Digest</h1><h2 id="1-1-来源"><a href="#1-1-来源" class="headerlink" title="1.1 来源"></a>1.1 来源</h2><p>可不可以把任意一个c++库改写成纯头文件库？ - WhoTFAmI的回答 - 知乎 <a target="_blank" rel="noopener" href="https://www.zhihu.com/question/525003410/answer/2420228940">https://www.zhihu.com/question/525003410/answer/2420228940</a></p>
+        <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/hint.css/2.4.1/hint.min.css"><link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/hint.css/2.4.1/hint.min.css"><h1 id="1-Digest"><a href="#1-Digest" class="headerlink" title="1 Digest"></a>1 Digest</h1><h2 id="1-1-来源"><a href="#1-1-来源" class="headerlink" title="1.1 来源"></a>1.1 来源</h2><p>可不可以把任意一个c++库改写成纯头文件库？ - WhoTFAmI的回答 - 知乎 <a target="_blank" rel="noopener" href="https://www.zhihu.com/question/525003410/answer/2420228940">https://www.zhihu.com/question/525003410/answer/2420228940</a></p>
 <h2 id="1-2-前言"><a href="#1-2-前言" class="headerlink" title="1.2 前言"></a>1.2 前言</h2><p>循环依赖无需考虑，用include guard就好。</p>
 <figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">ifndef</span> XXX</span></span><br><span class="line"><span class="comment">// blah blah</span></span><br><span class="line"><span class="meta">#<span class="keyword">endif</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">ifndef</span> YYY</span></span><br><span class="line"><span class="comment">// blah blah</span></span><br><span class="line"><span class="meta">#<span class="keyword">endif</span></span></span><br></pre></td></tr></table></figure>
 
@@ -115,8 +115,9 @@
 <p>在传统头文件实现分离的方法中，我们只需要在头文件里把变量标成extern，在任一实现文件定义其即可。
 在纯头文件库里，需要直接改成外部链接并加上inline说明符。</p>
 <p>注意这个全局变量的inline在C++17标准才启用。在C++17之前，header only里的全局变量都是要用inline函数返回静态变量的指针or引用。
-这种做法在C++11之后是附带了线程安全初始化的，有开销。[^1]</p>
-<p>还需注意，在此之前，全局非const变量，<strong>非模板类的静态变量</strong>，都是纯头文件化的阻碍。[^2]</p>
+这种做法在C++11之后是附带了线程安全初始化的，有开销。<sup id="fnref:1"><a href="#fn:1" rel="footnote"><span class="hint--top hint--error hint--medium hint--rounded hint--bounce" aria-label="可不可以把任意一个c++库改写成纯头文件库？ - 知乎用户u44DoS的回答 - 知乎 https://www.zhihu.com/question/525003410/answer/2414822441">1</span></a></sup></p>
+<p>还需注意，在此之前，全局非const变量，<strong>非模板类的静态变量</strong>，都是纯头文件化的阻碍。<sup id="fnref:2"><a href="#fn:2" rel="footnote"><span class="hint--top hint--error hint--medium hint--rounded hint--bounce" aria-label="可不可以把任意一个c++库改写成纯头文件库？ - IceBear的回答 - 知乎 https://www.zhihu.com/question/525003410/answer/2419575784
+">2</span></a></sup></p>
 <h1 id="2-原文摘要"><a href="#2-原文摘要" class="headerlink" title="2 原文摘要"></a>2 原文摘要</h1><h2 id="2-1-单个cpp文件情形"><a href="#2-1-单个cpp文件情形" class="headerlink" title="2.1 单个cpp文件情形"></a>2.1 单个cpp文件情形</h2><p>如果要求头文件只会被 <strong>一个</strong> 翻译单元（.cpp文件）包含，需要做：</p>
 <ul>
 <li>把全局&#x2F;命名空间内的内部链接（internal linkage）的函数、变量、常量、类，改一个全局唯一的名字。</li>
@@ -135,9 +136,7 @@
 <li>匿名空间及其里面的名字（变量、常量、函数、类型）</li>
 </ul>
 <p>需要注意的是，C++的全局&#x2F;命名空间内的没有 inline 说明符的常量（const）是内部链接的。所以如果你的头文件中有定义常量，记得加上 inline，否则极其容易被 odr-use，导致未定义行为（理论上）。</p>
-<p>[^1]: 可不可以把任意一个c++库改写成纯头文件库？ - 知乎用户u44DoS的回答 - 知乎 <a target="_blank" rel="noopener" href="https://www.zhihu.com/question/525003410/answer/2414822441">https://www.zhihu.com/question/525003410/answer/2414822441</a>
-[^2]: 可不可以把任意一个c++库改写成纯头文件库？ - IceBear的回答 - 知乎 <a target="_blank" rel="noopener" href="https://www.zhihu.com/question/525003410/answer/2419575784">https://www.zhihu.com/question/525003410/answer/2419575784</a></p>
-
+<div id="footnotes"><hr><div id="footnotelist"><ol style="list-style: none; padding-left: 0; margin-left: 40px"><li id="fn:1"><span style="display: inline-block; vertical-align: top; padding-right: 10px; margin-left: -40px">1.</span><span style="display: inline-block; vertical-align: top; margin-left: 10px;">可不可以把任意一个c++库改写成纯头文件库？ - 知乎用户u44DoS的回答 - 知乎 https://www.zhihu.com/question/525003410/answer/2414822441<a href="#fnref:1" rev="footnote">↩</a></span></li><li id="fn:2"><span style="display: inline-block; vertical-align: top; padding-right: 10px; margin-left: -40px">2.</span><span style="display: inline-block; vertical-align: top; margin-left: 10px;">可不可以把任意一个c++库改写成纯头文件库？ - IceBear的回答 - 知乎 https://www.zhihu.com/question/525003410/answer/2419575784<a href="#fnref:2" rev="footnote">↩</a></span></li></ol></div></div>
       
     </div>
     <footer class="article-footer">
