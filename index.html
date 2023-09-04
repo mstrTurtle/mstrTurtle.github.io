@@ -157,7 +157,7 @@
 </a>
     
   <div class="article-category">
-    <a class="article-category-link" href="/categories/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/">设计模式</a>
+    <a class="article-category-link" href="/categories/C/">C++</a>►<a class="article-category-link" href="/categories/C/OO%E8%AE%BE%E8%AE%A1/">OO设计</a>
   </div>
 
   </div>
@@ -176,9 +176,12 @@
     
     <div class="e-content article-entry" itemprop="articleBody">
       
-        <h2 id="梗概"><a href="#梗概" class="headerlink" title="梗概"></a>梗概</h2><p>类的成员变量应当被藏起来，这就是封装。<br>每当一个public成员函数出现，都是把此成员变量曝光了，这样就降低了类本身的封装性。</p>
-<p>我们不该将一些public函数的组合函数，也就是一些工具类，硬套在相应的类上。<br>事实上，这反而降低了封装度。我们应当把它弄成non member的，来减少类本身的披露。</p>
-<p>更进一步，通过C++的namespace机制，我们可以把相互之间差异极大的Util函数装进Util命名空间。<br>这样做不仅能把不同关注点的工具类分到不同头文件中，还能够方便用户往里边加东西。</p>
+        <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/hint.css/2.4.1/hint.min.css"><h2 id="梗概"><a href="#梗概" class="headerlink" title="梗概"></a>梗概</h2><p>类的成员变量应当被藏起来，这就是封装。
+每当一个public成员函数出现，都是把此成员变量曝光了，这样就降低了类本身的封装性。</p>
+<p>我们不该将一些public函数的组合函数，也就是一些工具类，硬套在相应的类上。
+事实上，这反而降低了封装度。我们应当把它弄成non member的，来减少类本身的披露。</p>
+<p>更进一步，通过C++的namespace机制，我们可以把相互之间差异极大的Util函数装进Util命名空间。
+这样做不仅能把不同关注点的工具类分到不同头文件中，还能够方便用户往里边加东西。</p>
 <h2 id="浏览器Browser的设计场景"><a href="#浏览器Browser的设计场景" class="headerlink" title="浏览器Browser的设计场景"></a>浏览器Browser的设计场景</h2><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">Browser</span>&#123;</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="function"><span class="type">void</span> <span class="title">clearCache</span><span class="params">()</span></span>;</span><br><span class="line">    <span class="function"><span class="type">void</span> <span class="title">clearHistory</span><span class="params">()</span></span>;</span><br><span class="line">    <span class="function"><span class="type">void</span> <span class="title">clearCookie</span><span class="params">()</span></span>;</span><br><span class="line">    <span class="function"><span class="type">void</span> <span class="title">clearEverything</span><span class="params">()</span></span>&#123; <span class="comment">// 选择1</span></span><br><span class="line">        <span class="built_in">clearCache</span>();</span><br><span class="line">        <span class="built_in">clearHistory</span>();</span><br><span class="line">        <span class="built_in">clearCookie</span>();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">clearEverything</span><span class="params">(Browser&amp; b)</span></span>&#123; <span class="comment">// 选择2</span></span><br><span class="line">    b.<span class="built_in">clearCache</span>()</span><br><span class="line">    b.<span class="built_in">clearHistory</span>();</span><br><span class="line">    b.<span class="built_in">clearCookie</span>();</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
 
 <p>如何抉择？Effective C++ 条款23告诉我们，答案是选择2——non member函数！</p>
@@ -190,7 +193,8 @@
 <h2 id="namespace的好处"><a href="#namespace的好处" class="headerlink" title="namespace的好处"></a>namespace的好处</h2><p>在C++中，弄一个namespace会带来更好的好处。</p>
 <p>一般Util内的不同函数都大相径庭，八竿子打不着。通过namespace，可以把这些函数放进不同的头文件（区别于class，只能写一起），实现一些分离。</p>
 <h2 id="namespace额外好处"><a href="#namespace额外好处" class="headerlink" title="namespace额外好处"></a>namespace额外好处</h2><p>namespace还可以增强扩展性，用户随便在哪儿写一个扩展就行了。</p>
-<p>但class的话，客户得去改库代码，或者得手动派生。派生是有问题的：<br>Derived没法访问Base里的private，只能是“次级身份”了。</p>
+<p>但class的话，客户得去改库代码，或者得手动派生。派生是有问题的：
+Derived没法访问Base里的private，只能是“次级身份”了。</p>
 <p>毕竟不是所有类都被设计成Base用，专门给你派生的。</p>
 
       
@@ -200,8 +204,6 @@
       
       
       
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" rel="tag">设计模式</a></li></ul>
-
     </footer>
   </div>
   
@@ -738,7 +740,7 @@
   <div class="widget-wrap">
     <h3 class="widget-title">Categories</h3>
     <div class="widget">
-      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/C/">C++</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/C/%E7%BC%96%E8%AF%91%E9%93%BE%E6%8E%A5/">编译链接</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/">设计模式</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E8%BD%AF%E4%BB%B6%E5%8F%82%E8%80%83/">软件参考</a></li></ul>
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/C/">C++</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/C/OO%E8%AE%BE%E8%AE%A1/">OO设计</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/C/%E7%BC%96%E8%AF%91%E9%93%BE%E6%8E%A5/">编译链接</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E8%BD%AF%E4%BB%B6%E5%8F%82%E8%80%83/">软件参考</a></li></ul>
     </div>
   </div>
 
@@ -748,7 +750,7 @@
   <div class="widget-wrap">
     <h3 class="widget-title">Tags</h3>
     <div class="widget">
-      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/C/" rel="tag">C++</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Java/" rel="tag">Java</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/OpenGL/" rel="tag">OpenGL</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Windows/" rel="tag">Windows</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/haskell/" rel="tag">haskell</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%B9%B6%E5%8F%91/" rel="tag">并发</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%9D%82%E6%84%9F/" rel="tag">杂感</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%BC%96%E7%A0%81/" rel="tag">编码</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" rel="tag">设计模式</a></li></ul>
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/C/" rel="tag">C++</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Java/" rel="tag">Java</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/OpenGL/" rel="tag">OpenGL</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Windows/" rel="tag">Windows</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/haskell/" rel="tag">haskell</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%B9%B6%E5%8F%91/" rel="tag">并发</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%9D%82%E6%84%9F/" rel="tag">杂感</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%BC%96%E7%A0%81/" rel="tag">编码</a></li></ul>
     </div>
   </div>
 
@@ -758,7 +760,7 @@
   <div class="widget-wrap">
     <h3 class="widget-title">Tag Cloud</h3>
     <div class="widget tagcloud">
-      <a href="/tags/C/" style="font-size: 20px;">C++</a> <a href="/tags/Java/" style="font-size: 13.33px;">Java</a> <a href="/tags/OpenGL/" style="font-size: 10px;">OpenGL</a> <a href="/tags/Windows/" style="font-size: 10px;">Windows</a> <a href="/tags/haskell/" style="font-size: 10px;">haskell</a> <a href="/tags/%E5%B9%B6%E5%8F%91/" style="font-size: 10px;">并发</a> <a href="/tags/%E6%9D%82%E6%84%9F/" style="font-size: 16.67px;">杂感</a> <a href="/tags/%E7%BC%96%E7%A0%81/" style="font-size: 13.33px;">编码</a> <a href="/tags/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" style="font-size: 10px;">设计模式</a>
+      <a href="/tags/C/" style="font-size: 20px;">C++</a> <a href="/tags/Java/" style="font-size: 13.33px;">Java</a> <a href="/tags/OpenGL/" style="font-size: 10px;">OpenGL</a> <a href="/tags/Windows/" style="font-size: 10px;">Windows</a> <a href="/tags/haskell/" style="font-size: 10px;">haskell</a> <a href="/tags/%E5%B9%B6%E5%8F%91/" style="font-size: 10px;">并发</a> <a href="/tags/%E6%9D%82%E6%84%9F/" style="font-size: 16.67px;">杂感</a> <a href="/tags/%E7%BC%96%E7%A0%81/" style="font-size: 13.33px;">编码</a>
     </div>
   </div>
 
