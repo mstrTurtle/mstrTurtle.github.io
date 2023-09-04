@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  
+  <title>Effective C++ 条款23：多用non member函数 | mstrTurtle的生活智慧</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta name="description" content="浏览器Browser的设计场景123456789101112131415161718class Browser&amp;#123;public:    void clearCache();    void clearHistory();    void clearCookie();    void clearEverything()&amp;#123; &#x2F;&#x2F; 选择1        clearCache();">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Effective C++ 条款23：多用non member函数">
+<meta property="og:url" content="http://example.com/2023/09/04/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/effective-cpp-24/index.html">
+<meta property="og:site_name" content="mstrTurtle的生活智慧">
+<meta property="og:description" content="浏览器Browser的设计场景123456789101112131415161718class Browser&amp;#123;public:    void clearCache();    void clearHistory();    void clearCookie();    void clearEverything()&amp;#123; &#x2F;&#x2F; 选择1        clearCache();">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2023-09-04T13:04:02.625Z">
+<meta property="article:modified_time" content="2023-09-04T13:09:49.947Z">
+<meta property="article:author" content="Master Turtle">
+<meta property="article:tag" content="设计模式">
+<meta name="twitter:card" content="summary">
+  
+    <link rel="alternate" href="/atom.xml" title="mstrTurtle的生活智慧" type="application/atom+xml">
+  
+  
+    <link rel="shortcut icon" href="/favicon.png">
+  
+  
+    
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-source-code-pro@0.0.71/index.min.css">
+
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+    
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+
+  
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">mstrTurtle的生活智慧</a>
+      </h1>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+          <a id="nav-rss-link" class="nav-icon" href="/atom.xml" title="RSS Feed"></a>
+        
+        <a id="nav-search-btn" class="nav-icon" title="Search"></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="http://example.com"></form>
+      </div>
+    </div>
+  </div>
+</header>
+
+      <div class="outer">
+        <section id="main"><article id="post-设计模式/effective-cpp-24" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2023/09/04/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/effective-cpp-24/" class="article-date">
+  <time class="dt-published" datetime="2023-09-04T13:04:02.625Z" itemprop="datePublished">2023-09-04</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="p-name article-title" itemprop="headline name">
+      Effective C++ 条款23：多用non member函数
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <h2 id="浏览器Browser的设计场景"><a href="#浏览器Browser的设计场景" class="headerlink" title="浏览器Browser的设计场景"></a>浏览器Browser的设计场景</h2><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">Browser</span>&#123;</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="function"><span class="type">void</span> <span class="title">clearCache</span><span class="params">()</span></span>;</span><br><span class="line">    <span class="function"><span class="type">void</span> <span class="title">clearHistory</span><span class="params">()</span></span>;</span><br><span class="line">    <span class="function"><span class="type">void</span> <span class="title">clearCookie</span><span class="params">()</span></span>;</span><br><span class="line">    <span class="function"><span class="type">void</span> <span class="title">clearEverything</span><span class="params">()</span></span>&#123; <span class="comment">// 选择1</span></span><br><span class="line">        <span class="built_in">clearCache</span>();</span><br><span class="line">        <span class="built_in">clearHistory</span>();</span><br><span class="line">        <span class="built_in">clearCookie</span>();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">clearEverything</span><span class="params">(Browser&amp; b)</span></span>&#123; <span class="comment">// 选择2</span></span><br><span class="line">    b.<span class="built_in">clearCache</span>()</span><br><span class="line">    b.<span class="built_in">clearHistory</span>();</span><br><span class="line">    b.<span class="built_in">clearCookie</span>();</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>如何抉择？Effective C++ 条款23告诉我们，答案是选择2——non member函数！</p>
+<h2 id="non-member相较之下提升了封装性"><a href="#non-member相较之下提升了封装性" class="headerlink" title="non member相较之下提升了封装性"></a>non member相较之下提升了封装性</h2><p>成员变量（类的数据）应为private。否则就有无穷多的函数可以访问它们。无穷降低了封装性。</p>
+<p>采用non-member的原因：如果是member，那就多了一个能访问到private变量的函数。降低了Browser类的封装性。</p>
+<h2 id="采用non-member的特殊情况"><a href="#采用non-member的特殊情况" class="headerlink" title="采用non member的特殊情况"></a>采用non member的特殊情况</h2><p>但对于已经是friend的来讲，已经让它访问到成员变量了。所以member不member无所谓。此时你应该考虑no friend no member是否可行。</p>
+<p>隐式类型转换可以考虑是否member.</p>
+<h2 id="考虑放另一个Util类里"><a href="#考虑放另一个Util类里" class="headerlink" title="考虑放另一个Util类里"></a>考虑放另一个Util类里</h2><p>未必不能是另一个类（Util）的member。反正它是Util的member，并不影响对Browser的封装性的破坏。</p>
+<h2 id="namespace的好处"><a href="#namespace的好处" class="headerlink" title="namespace的好处"></a>namespace的好处</h2><p>在C++中，弄一个namespace会带来更好的好处。</p>
+<p>一般Util内的不同函数都大相径庭，八竿子打不着。通过namespace，可以把这些函数放进不同的头文件（区别于class，只能写一起），实现一些分离。</p>
+<h2 id="namespace额外好处"><a href="#namespace额外好处" class="headerlink" title="namespace额外好处"></a>namespace额外好处</h2><p>namespace还可以增强扩展性，用户随便在哪儿写一个扩展就行了。</p>
+<p>但class的话，客户得去改库代码，或者得手动派生。派生是有问题的：<br>Derived没法访问Base里的private，只能是“次级身份”了。</p>
+<p>毕竟不是所有类都被设计成Base用，专门给你派生的。</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2023/09/04/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/effective-cpp-24/" data-id="clm4wkvih0000fgjuey9eah6l" data-title="Effective C++ 条款23：多用non member函数" class="article-share-link">Share</a>
+      
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" rel="tag">设计模式</a></li></ul>
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+  
+    <a href="/2023/03/09/dynamic-cast/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">dynamic_cast与虚继承</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+
+</section>
+        
+          <aside id="sidebar">
+  
+    
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tags</h3>
+    <div class="widget">
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/C/" rel="tag">C++</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Java/" rel="tag">Java</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/OpenGL/" rel="tag">OpenGL</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Windows/" rel="tag">Windows</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/haskell/" rel="tag">haskell</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%B9%B6%E5%8F%91/" rel="tag">并发</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%9D%82%E6%84%9F/" rel="tag">杂感</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%BC%96%E7%A0%81/" rel="tag">编码</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" rel="tag">设计模式</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tag Cloud</h3>
+    <div class="widget tagcloud">
+      <a href="/tags/C/" style="font-size: 20px;">C++</a> <a href="/tags/Java/" style="font-size: 13.33px;">Java</a> <a href="/tags/OpenGL/" style="font-size: 10px;">OpenGL</a> <a href="/tags/Windows/" style="font-size: 10px;">Windows</a> <a href="/tags/haskell/" style="font-size: 10px;">haskell</a> <a href="/tags/%E5%B9%B6%E5%8F%91/" style="font-size: 10px;">并发</a> <a href="/tags/%E6%9D%82%E6%84%9F/" style="font-size: 16.67px;">杂感</a> <a href="/tags/%E7%BC%96%E7%A0%81/" style="font-size: 13.33px;">编码</a> <a href="/tags/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" style="font-size: 10px;">设计模式</a>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Archives</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/09/">September 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/03/">March 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/01/">January 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/12/">December 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/10/">October 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/01/">January 2022</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Recent Posts</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2023/09/04/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/effective-cpp-24/">Effective C++ 条款23：多用non member函数</a>
+          </li>
+        
+          <li>
+            <a href="/2023/03/09/dynamic-cast/">dynamic_cast与虚继承</a>
+          </li>
+        
+          <li>
+            <a href="/2023/03/03/ime-research/">Win10控制台应用IME研究</a>
+          </li>
+        
+          <li>
+            <a href="/2023/03/03/encoding/">字符编码的历史与dotnet的做法</a>
+          </li>
+        
+          <li>
+            <a href="/2023/03/03/saga-agenda/">YouTube Saga视频的Agenda</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      
+      &copy; 2023 Master Turtle<br>
+      Powered by <a href="https://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+</nav>
+    
+
+
+<script src="/js/jquery-3.4.1.min.js"></script>
+
+
+
+  
+<script src="/fancybox/jquery.fancybox.min.js"></script>
+
+
+
+
+<script src="/js/script.js"></script>
+
+
+
+
+
+  </div>
+</body>
+</html>
