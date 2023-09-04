@@ -97,16 +97,16 @@
     
     <div class="e-content article-entry" itemprop="articleBody">
       
-        <h1 id="Digest"><a href="#Digest" class="headerlink" title="Digest"></a>Digest</h1><h2 id="来源"><a href="#来源" class="headerlink" title="来源"></a>来源</h2><p>可不可以把任意一个c++库改写成纯头文件库？ - WhoTFAmI的回答 - 知乎 <a target="_blank" rel="noopener" href="https://www.zhihu.com/question/525003410/answer/2420228940">https://www.zhihu.com/question/525003410/answer/2420228940</a></p>
-<h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>循环依赖无需考虑，用include guard就好。</p>
+        <h1 id="1-Digest"><a href="#1-Digest" class="headerlink" title="1 Digest"></a>1 Digest</h1><h2 id="1-1-来源"><a href="#1-1-来源" class="headerlink" title="1.1 来源"></a>1.1 来源</h2><p>可不可以把任意一个c++库改写成纯头文件库？ - WhoTFAmI的回答 - 知乎 <a target="_blank" rel="noopener" href="https://www.zhihu.com/question/525003410/answer/2420228940">https://www.zhihu.com/question/525003410/answer/2420228940</a></p>
+<h2 id="1-2-前言"><a href="#1-2-前言" class="headerlink" title="1.2 前言"></a>1.2 前言</h2><p>循环依赖无需考虑，用include guard就好。</p>
 <figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">ifndef</span> XXX</span></span><br><span class="line"><span class="comment">// blah blah</span></span><br><span class="line"><span class="meta">#<span class="keyword">endif</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">ifndef</span> YYY</span></span><br><span class="line"><span class="comment">// blah blah</span></span><br><span class="line"><span class="meta">#<span class="keyword">endif</span></span></span><br></pre></td></tr></table></figure>
 
 <p>不是大问题。关键是链接、名字冲突问题。</p>
-<h2 id="前置知识"><a href="#前置知识" class="headerlink" title="前置知识"></a>前置知识</h2><h2 id="先不考虑多编译单元"><a href="#先不考虑多编译单元" class="headerlink" title="先不考虑多编译单元"></a>先不考虑多编译单元</h2><p>直接把各个命名空间里面冲突的函数、变量、常量、类改一个全局唯一的名字。</p>
-<h2 id="多编译单元命名冲突处理"><a href="#多编译单元命名冲突处理" class="headerlink" title="多编译单元命名冲突处理"></a>多编译单元命名冲突处理</h2><p>static&#x2F;匿名空间内的匿名 union需要改成不匿名的 union 类型 + inline 变量。</p>
-<h3 id="函数的处理"><a href="#函数的处理" class="headerlink" title="函数的处理"></a>函数的处理</h3><p>函数声明默认是extern的，函数定义默认是internal linkage的。</p>
+<h2 id="1-3-前置知识"><a href="#1-3-前置知识" class="headerlink" title="1.3 前置知识"></a>1.3 前置知识</h2><h2 id="1-4-先不考虑多编译单元"><a href="#1-4-先不考虑多编译单元" class="headerlink" title="1.4 先不考虑多编译单元"></a>1.4 先不考虑多编译单元</h2><p>直接把各个命名空间里面冲突的函数、变量、常量、类改一个全局唯一的名字。</p>
+<h2 id="1-5-多编译单元命名冲突处理"><a href="#1-5-多编译单元命名冲突处理" class="headerlink" title="1.5 多编译单元命名冲突处理"></a>1.5 多编译单元命名冲突处理</h2><p>static&#x2F;匿名空间内的匿名 union需要改成不匿名的 union 类型 + inline 变量。</p>
+<h3 id="1-5-1-函数的处理"><a href="#1-5-1-函数的处理" class="headerlink" title="1.5.1 函数的处理"></a>1.5.1 函数的处理</h3><p>函数声明默认是extern的，函数定义默认是internal linkage的。</p>
 <p>函数好办，全加上inline就行。</p>
-<h3 id="全局变量的处理"><a href="#全局变量的处理" class="headerlink" title="全局变量的处理"></a>全局变量的处理</h3><p>全局变量默认是internal linkage。除非你标出了extern。</p>
+<h3 id="1-5-2-全局变量的处理"><a href="#1-5-2-全局变量的处理" class="headerlink" title="1.5.2 全局变量的处理"></a>1.5.2 全局变量的处理</h3><p>全局变量默认是internal linkage。除非你标出了extern。</p>
 <p>如果internal linkage的东西在预处理阶段被照抄进cpp，多个cpp又被ld链接器进行链接，
 那么两个编译单元里出现两个相同的定义，将会违反ODR（One Definition Rule）原则，
 造成未定义行为！</p>
@@ -115,12 +115,12 @@
 <p>注意这个全局变量的inline在C++17标准才启用。在C++17之前，header only里的全局变量都是要用inline函数返回静态变量的指针or引用。
 这种做法在C++11之后是附带了线程安全初始化的，有开销。[^1]</p>
 <p>还需注意，在此之前，全局非const变量，<strong>非模板类的静态变量</strong>，都是纯头文件化的阻碍。[^2]</p>
-<h1 id="原文摘要"><a href="#原文摘要" class="headerlink" title="原文摘要"></a>原文摘要</h1><h2 id="单个cpp文件情形"><a href="#单个cpp文件情形" class="headerlink" title="单个cpp文件情形"></a>单个cpp文件情形</h2><p>如果要求头文件只会被 <strong>一个</strong> 翻译单元（.cpp文件）包含，需要做：</p>
+<h1 id="2-原文摘要"><a href="#2-原文摘要" class="headerlink" title="2 原文摘要"></a>2 原文摘要</h1><h2 id="2-1-单个cpp文件情形"><a href="#2-1-单个cpp文件情形" class="headerlink" title="2.1 单个cpp文件情形"></a>2.1 单个cpp文件情形</h2><p>如果要求头文件只会被 <strong>一个</strong> 翻译单元（.cpp文件）包含，需要做：</p>
 <ul>
 <li>把全局&#x2F;命名空间内的内部链接（internal linkage）的函数、变量、常量、类，改一个全局唯一的名字。</li>
 <li>只在原来的翻译单元中的定义的宏，改一个全局唯一的名字</li>
 </ul>
-<h2 id="多个cpp文件情形"><a href="#多个cpp文件情形" class="headerlink" title="多个cpp文件情形"></a>多个cpp文件情形</h2><p>如果要求头文件可以被 <strong>多个</strong> 翻译单元（.cpp文件）包含，<strong>还</strong> 需要做：</p>
+<h2 id="2-2-多个cpp文件情形"><a href="#2-2-多个cpp文件情形" class="headerlink" title="2.2 多个cpp文件情形"></a>2.2 多个cpp文件情形</h2><p>如果要求头文件可以被 <strong>多个</strong> 翻译单元（.cpp文件）包含，<strong>还</strong> 需要做：</p>
 <ul>
 <li>把全局&#x2F;命名空间内的外部链接（external linkage）的函数、变量声明加上 inline 说明符</li>
 <li>把全局&#x2F;命名空间内的内部链接的函数、变量、常量、类型、匿名空间，取一个全局唯一的名字，改成外部链接且加 inline 说明符。如果做得细致点，可以只改那些被 odr-use 的，但基本上全部都会被 odr-use 的，而且谁知道它未来会不会被新代码 odr-use。</li>
