@@ -9,12 +9,12 @@
   <meta name="description" content="备忘录模式：不破坏封装的情况下捕获某对象的内部状态，在其外存储此状态。这样就能在某时刻将其恢复到原先状态。 Originator（发起人）：负责创建一个Memento。并可以使用其恢复状态。可以自行掌控需要往Memento里存啥。 Memento（备忘录）：存储Originator内部状态，防止除Originator以外的人看到状态。 Caretaker（管理者）：只管存储好备忘录，不能对其操作o">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Memento模式实现角色状态恢复">
-<meta property="og:url" content="http://example.com/2023/09/04/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/memento/index.html">
+<meta property="og:url" content="http://example.com/2023/09/05/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/memento/index.html">
 <meta property="og:site_name" content="mstrTurtle的生活智慧">
 <meta property="og:description" content="备忘录模式：不破坏封装的情况下捕获某对象的内部状态，在其外存储此状态。这样就能在某时刻将其恢复到原先状态。 Originator（发起人）：负责创建一个Memento。并可以使用其恢复状态。可以自行掌控需要往Memento里存啥。 Memento（备忘录）：存储Originator内部状态，防止除Originator以外的人看到状态。 Caretaker（管理者）：只管存储好备忘录，不能对其操作o">
 <meta property="og:locale" content="en_US">
-<meta property="article:published_time" content="2023-09-03T16:00:00.000Z">
-<meta property="article:modified_time" content="2023-09-05T02:45:08.930Z">
+<meta property="article:published_time" content="2023-09-04T16:00:00.000Z">
+<meta property="article:modified_time" content="2023-09-05T02:46:52.609Z">
 <meta property="article:author" content="Master Turtle">
 <meta name="twitter:card" content="summary">
   
@@ -75,8 +75,8 @@
       <div class="outer">
         <section id="main"><article id="post-设计模式/memento" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
   <div class="article-meta">
-    <a href="/2023/09/04/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/memento/" class="article-date">
-  <time class="dt-published" datetime="2023-09-03T16:00:00.000Z" itemprop="datePublished">2023-09-04</time>
+    <a href="/2023/09/05/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/memento/" class="article-date">
+  <time class="dt-published" datetime="2023-09-04T16:00:00.000Z" itemprop="datePublished">2023-09-05</time>
 </a>
     
   <div class="article-category">
@@ -125,7 +125,7 @@ Memento的权限管理得不好，getState是public的。为了改正这一情�
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://example.com/2023/09/04/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/memento/" data-id="clm5pkjbi0000qsju8cp079gk" data-title="Memento模式实现角色状态恢复" class="article-share-link">Share</a>
+      <a data-url="http://example.com/2023/09/05/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/memento/" data-id="clm5pkjbi0000qsju8cp079gk" data-title="Memento模式实现角色状态恢复" class="article-share-link">Share</a>
       
       
       
@@ -135,19 +135,10 @@ Memento的权限管理得不好，getState是public的。为了改正这一情�
     
 <nav id="article-nav">
   
-    <a href="/2023/09/04/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/effective-cpp-24/" id="article-nav-newer" class="article-nav-link-wrap">
-      <strong class="article-nav-caption">Newer</strong>
-      <div class="article-nav-title">
-        
-          Effective C++ 条款23：多用non member函数
-        
-      </div>
-    </a>
   
-  
-    <a href="/2023/03/09/dynamic-cast/" id="article-nav-older" class="article-nav-link-wrap">
+    <a href="/2023/09/04/header-only-lib/" id="article-nav-older" class="article-nav-link-wrap">
       <strong class="article-nav-caption">Older</strong>
-      <div class="article-nav-title">dynamic_cast与虚继承</div>
+      <div class="article-nav-title">C++将项目改造成纯头文件库</div>
     </a>
   
 </nav>
@@ -206,15 +197,15 @@ Memento的权限管理得不好，getState是public的。为了改正这一情�
       <ul>
         
           <li>
+            <a href="/2023/09/05/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/memento/">Memento模式实现角色状态恢复</a>
+          </li>
+        
+          <li>
             <a href="/2023/09/04/header-only-lib/">C++将项目改造成纯头文件库</a>
           </li>
         
           <li>
             <a href="/2023/09/04/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/effective-cpp-24/">Effective C++ 条款23：多用non member函数</a>
-          </li>
-        
-          <li>
-            <a href="/2023/09/04/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/memento/">Memento模式实现角色状态恢复</a>
           </li>
         
           <li>

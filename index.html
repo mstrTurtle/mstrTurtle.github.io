@@ -71,6 +71,70 @@
       <div class="outer">
         <section id="main">
   
+    <article id="post-设计模式/memento" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2023/09/05/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/memento/" class="article-date">
+  <time class="dt-published" datetime="2023-09-04T16:00:00.000Z" itemprop="datePublished">2023-09-05</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/OO%E8%AE%BE%E8%AE%A1/">OO设计</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2023/09/05/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/memento/">Memento模式实现角色状态恢复</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/hint.css/2.4.1/hint.min.css"><p>备忘录模式：不破坏封装的情况下捕获某对象的内部状态，在其外存储此状态。这样就能在某时刻将其恢复到原先状态。</p>
+<p>Originator（发起人）：负责创建一个Memento。并可以使用其恢复状态。可以自行掌控需要往Memento里存啥。
+Memento（备忘录）：存储Originator内部状态，防止除Originator以外的人看到状态。
+Caretaker（管理者）：只管存储好备忘录，不能对其操作or检查。</p>
+<hr>
+<p>简单总结一下，Originator只管创造Memento、用其回复状态。
+Memento不仅是一个ADT，还需要管理好其权限，只能让Originator看到内部状态。
+Caretaker负责保管好备忘录。</p>
+<hr>
+<p>下面的范例是知乎摘出来的，经过评论区指正，有一些缺点：
+Memento的权限管理得不好，getState是public的。为了改正这一情况，需要
+把restoreState放在Memento里，把getState拿掉。（<code>Memento::restoreState(Originator&amp; originator)</code>）
+还有另一种解法：Memento作为GameRole的私有内部类。（我觉得这是说错了，外部没法存储Memento）</p>
+<hr>
+<p>一个简单的范例：</p>
+<p>有一个游戏角色，拥有血量、攻击力、防御力</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line">class GameRole &#123;</span><br><span class="line">	private int vit; // 生命力</span><br><span class="line">	private int atk; // 攻击力</span><br><span class="line">	private int def; // 防御力</span><br><span class="line">	// 初始化状态</span><br><span class="line">	public void initState()&#123;</span><br><span class="line">		this.vit = 100;</span><br><span class="line">		this.atk = 100;</span><br><span class="line">		this.def = 100;</span><br><span class="line">	&#125;</span><br><span class="line">	// 战斗</span><br><span class="line">	public void fight()&#123;</span><br><span class="line">		this.vit = 0;</span><br><span class="line">		this.atk = 0;</span><br><span class="line">		this.def = 0;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	public RoleStateMemento saveState()&#123;</span><br><span class="line">		return &#123;vit, atk, def&#125;;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	public recoverState(RoleStateMemento m)&#123;</span><br><span class="line">		this.vit = m.getVit();</span><br><span class="line">		// ...</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	public void stateDisplay()&#123;</span><br><span class="line">		cout &lt;&lt; &quot;角色生命力：&quot; ++ vit;</span><br><span class="line">		// ...</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">class RoleStateMemento&#123;</span><br><span class="line">	private int vit; // 生命力</span><br><span class="line">	private int atk; // 攻击力</span><br><span class="line">	private int def; // 防御力</span><br><span class="line">	// 一堆setter, getter</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">class RoleStateCaretaker&#123;</span><br><span class="line">	private RoleStateMemento m;</span><br><span class="line">	// m 的 getter和setter</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2023/09/05/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/memento/" data-id="clm5pkjbi0000qsju8cp079gk" data-title="Memento模式实现角色状态恢复" class="article-share-link">Share</a>
+      
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
     <article id="post-header-only-lib" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
   <div class="article-meta">
     <a href="/2023/09/04/header-only-lib/" class="article-date">
@@ -201,70 +265,6 @@ Derived没法访问Base里的private，只能是“次级身份”了。</p>
     </div>
     <footer class="article-footer">
       <a data-url="http://example.com/2023/09/04/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/effective-cpp-24/" data-id="clm4wkvih0000fgjuey9eah6l" data-title="Effective C++ 条款23：多用non member函数" class="article-share-link">Share</a>
-      
-      
-      
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
-    <article id="post-设计模式/memento" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
-  <div class="article-meta">
-    <a href="/2023/09/04/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/memento/" class="article-date">
-  <time class="dt-published" datetime="2023-09-03T16:00:00.000Z" itemprop="datePublished">2023-09-04</time>
-</a>
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/OO%E8%AE%BE%E8%AE%A1/">OO设计</a>
-  </div>
-
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="p-name article-title" href="/2023/09/04/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/memento/">Memento模式实现角色状态恢复</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="e-content article-entry" itemprop="articleBody">
-      
-        <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/hint.css/2.4.1/hint.min.css"><p>备忘录模式：不破坏封装的情况下捕获某对象的内部状态，在其外存储此状态。这样就能在某时刻将其恢复到原先状态。</p>
-<p>Originator（发起人）：负责创建一个Memento。并可以使用其恢复状态。可以自行掌控需要往Memento里存啥。
-Memento（备忘录）：存储Originator内部状态，防止除Originator以外的人看到状态。
-Caretaker（管理者）：只管存储好备忘录，不能对其操作or检查。</p>
-<hr>
-<p>简单总结一下，Originator只管创造Memento、用其回复状态。
-Memento不仅是一个ADT，还需要管理好其权限，只能让Originator看到内部状态。
-Caretaker负责保管好备忘录。</p>
-<hr>
-<p>下面的范例是知乎摘出来的，经过评论区指正，有一些缺点：
-Memento的权限管理得不好，getState是public的。为了改正这一情况，需要
-把restoreState放在Memento里，把getState拿掉。（<code>Memento::restoreState(Originator&amp; originator)</code>）
-还有另一种解法：Memento作为GameRole的私有内部类。（我觉得这是说错了，外部没法存储Memento）</p>
-<hr>
-<p>一个简单的范例：</p>
-<p>有一个游戏角色，拥有血量、攻击力、防御力</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line">class GameRole &#123;</span><br><span class="line">	private int vit; // 生命力</span><br><span class="line">	private int atk; // 攻击力</span><br><span class="line">	private int def; // 防御力</span><br><span class="line">	// 初始化状态</span><br><span class="line">	public void initState()&#123;</span><br><span class="line">		this.vit = 100;</span><br><span class="line">		this.atk = 100;</span><br><span class="line">		this.def = 100;</span><br><span class="line">	&#125;</span><br><span class="line">	// 战斗</span><br><span class="line">	public void fight()&#123;</span><br><span class="line">		this.vit = 0;</span><br><span class="line">		this.atk = 0;</span><br><span class="line">		this.def = 0;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	public RoleStateMemento saveState()&#123;</span><br><span class="line">		return &#123;vit, atk, def&#125;;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	public recoverState(RoleStateMemento m)&#123;</span><br><span class="line">		this.vit = m.getVit();</span><br><span class="line">		// ...</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	public void stateDisplay()&#123;</span><br><span class="line">		cout &lt;&lt; &quot;角色生命力：&quot; ++ vit;</span><br><span class="line">		// ...</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">class RoleStateMemento&#123;</span><br><span class="line">	private int vit; // 生命力</span><br><span class="line">	private int atk; // 攻击力</span><br><span class="line">	private int def; // 防御力</span><br><span class="line">	// 一堆setter, getter</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">class RoleStateCaretaker&#123;</span><br><span class="line">	private RoleStateMemento m;</span><br><span class="line">	// m 的 getter和setter</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://example.com/2023/09/04/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/memento/" data-id="clm5pkjbi0000qsju8cp079gk" data-title="Memento模式实现角色状态恢复" class="article-share-link">Share</a>
       
       
       
@@ -804,15 +804,15 @@ Memento的权限管理得不好，getState是public的。为了改正这一情�
       <ul>
         
           <li>
+            <a href="/2023/09/05/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/memento/">Memento模式实现角色状态恢复</a>
+          </li>
+        
+          <li>
             <a href="/2023/09/04/header-only-lib/">C++将项目改造成纯头文件库</a>
           </li>
         
           <li>
             <a href="/2023/09/04/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/effective-cpp-24/">Effective C++ 条款23：多用non member函数</a>
-          </li>
-        
-          <li>
-            <a href="/2023/09/04/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/memento/">Memento模式实现角色状态恢复</a>
           </li>
         
           <li>
