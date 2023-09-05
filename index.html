@@ -212,6 +212,70 @@ Derived没法访问Base里的private，只能是“次级身份”了。</p>
 
 
   
+    <article id="post-设计模式/memento" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2023/09/04/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/memento/" class="article-date">
+  <time class="dt-published" datetime="2023-09-03T16:00:00.000Z" itemprop="datePublished">2023-09-04</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/OO%E8%AE%BE%E8%AE%A1/">OO设计</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2023/09/04/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/memento/">Memento模式实现角色状态恢复</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/hint.css/2.4.1/hint.min.css"><p>备忘录模式：不破坏封装的情况下捕获某对象的内部状态，在其外存储此状态。这样就能在某时刻将其恢复到原先状态。</p>
+<p>Originator（发起人）：负责创建一个Memento。并可以使用其恢复状态。可以自行掌控需要往Memento里存啥。
+Memento（备忘录）：存储Originator内部状态，防止除Originator以外的人看到状态。
+Caretaker（管理者）：只管存储好备忘录，不能对其操作or检查。</p>
+<hr>
+<p>简单总结一下，Originator只管创造Memento、用其回复状态。
+Memento不仅是一个ADT，还需要管理好其权限，只能让Originator看到内部状态。
+Caretaker负责保管好备忘录。</p>
+<hr>
+<p>下面的范例是知乎摘出来的，经过评论区指正，有一些缺点：
+Memento的权限管理得不好，getState是public的。为了改正这一情况，需要
+把restoreState放在Memento里，把getState拿掉。（<code>Memento::restoreState(Originator&amp; originator)</code>）
+还有另一种解法：Memento作为GameRole的私有内部类。（我觉得这是说错了，外部没法存储Memento）</p>
+<hr>
+<p>一个简单的范例：</p>
+<p>有一个游戏角色，拥有血量、攻击力、防御力</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line">class GameRole &#123;</span><br><span class="line">	private int vit; // 生命力</span><br><span class="line">	private int atk; // 攻击力</span><br><span class="line">	private int def; // 防御力</span><br><span class="line">	// 初始化状态</span><br><span class="line">	public void initState()&#123;</span><br><span class="line">		this.vit = 100;</span><br><span class="line">		this.atk = 100;</span><br><span class="line">		this.def = 100;</span><br><span class="line">	&#125;</span><br><span class="line">	// 战斗</span><br><span class="line">	public void fight()&#123;</span><br><span class="line">		this.vit = 0;</span><br><span class="line">		this.atk = 0;</span><br><span class="line">		this.def = 0;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	public RoleStateMemento saveState()&#123;</span><br><span class="line">		return &#123;vit, atk, def&#125;;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	public recoverState(RoleStateMemento m)&#123;</span><br><span class="line">		this.vit = m.getVit();</span><br><span class="line">		// ...</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	public void stateDisplay()&#123;</span><br><span class="line">		cout &lt;&lt; &quot;角色生命力：&quot; ++ vit;</span><br><span class="line">		// ...</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">class RoleStateMemento&#123;</span><br><span class="line">	private int vit; // 生命力</span><br><span class="line">	private int atk; // 攻击力</span><br><span class="line">	private int def; // 防御力</span><br><span class="line">	// 一堆setter, getter</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">class RoleStateCaretaker&#123;</span><br><span class="line">	private RoleStateMemento m;</span><br><span class="line">	// m 的 getter和setter</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2023/09/04/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/memento/" data-id="clm5pkjbi0000qsju8cp079gk" data-title="Memento模式实现角色状态恢复" class="article-share-link">Share</a>
+      
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
     <article id="post-dynamic-cast" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
   <div class="article-meta">
     <a href="/2023/03/09/dynamic-cast/" class="article-date">
@@ -683,48 +747,6 @@ Derived没法访问Base里的private，只能是“次级身份”了。</p>
 
 
   
-    <article id="post-coroutine-revisit" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
-  <div class="article-meta">
-    <a href="/2023/01/12/coroutine-revisit/" class="article-date">
-  <time class="dt-published" datetime="2023-01-12T15:32:24.645Z" itemprop="datePublished">2023-01-12</time>
-</a>
-    
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="p-name article-title" href="/2023/01/12/coroutine-revisit/">重访coroutine</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="e-content article-entry" itemprop="articleBody">
-      
-        <p>重访”协程”.</p>
-<p><a target="_blank" rel="noopener" href="https://en.cppreference.com/w/cpp/language/coroutines">https://en.cppreference.com/w/cpp/language/coroutines</a></p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line">20计科一班肖嘉裕:</span><br><span class="line">比如: 协程是怎么恢复上下文的</span><br><span class="line"></span><br><span class="line">20计科一班肖嘉裕:</span><br><span class="line">比如一个没有initial_suspend的东西, 外界是怎么获得handle, 让它恢复执行的呢</span><br><span class="line"></span><br><span class="line">20计科一班肖嘉裕:</span><br><span class="line">还有就是, co_return后, 发生了什么?</span><br><span class="line"></span><br><span class="line">20计科一班肖嘉裕:</span><br><span class="line">&gt; 还有就是, co_return后, 发生了什么?</span><br><span class="line">这一点我想明白了, 应该是编译器自动塞了些保存线程上下文的代码, 把活儿给干了</span><br><span class="line"></span><br><span class="line">20计科一班肖嘉裕:</span><br><span class="line">&gt; 比如一个没有initial_suspend的东西, 外界是怎么获得handle, 让它恢复执行的呢</span><br><span class="line">这点的话, 我需要参考cppreference这个网站, 它有个生成器示例, 看看就知道handle在哪儿</span><br><span class="line"></span><br><span class="line">20计科一班肖嘉裕:</span><br><span class="line">我看了看, 发现handle是编译器自动注入promise_type的</span><br><span class="line"></span><br><span class="line">20计科一班肖嘉裕:</span><br><span class="line">handle有promise, done, destory, operator(), 这四种方法</span><br><span class="line"></span><br><span class="line">20计科一班肖嘉裕:</span><br><span class="line">可以自由控制协程的启停, 查询协程的状态, 获取协程的promise_type</span><br><span class="line"></span><br><span class="line">20计科一班肖嘉裕:</span><br><span class="line">cppreference里的Generator(也就是promise_type), 暴露了一个函数. 此函数可以调用handle的operator(), 让协程继续运行(也就是踢协程一脚)</span><br><span class="line"></span><br><span class="line">20计科一班肖嘉裕:</span><br><span class="line">这就是我的全部思路啦</span><br><span class="line"></span><br></pre></td></tr></table></figure>
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://example.com/2023/01/12/coroutine-revisit/" data-id="clct926dx0000k0ju949mgq38" data-title="重访coroutine" class="article-share-link">Share</a>
-      
-      
-      
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/C/" rel="tag">C++</a></li></ul>
-
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
 
 
   <nav id="page-nav">
@@ -740,7 +762,7 @@ Derived没法访问Base里的private，只能是“次级身份”了。</p>
   <div class="widget-wrap">
     <h3 class="widget-title">Categories</h3>
     <div class="widget">
-      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/C/">C++</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/C/OO%E8%AE%BE%E8%AE%A1/">OO设计</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/C/%E7%BC%96%E8%AF%91%E9%93%BE%E6%8E%A5/">编译链接</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E8%BD%AF%E4%BB%B6%E5%8F%82%E8%80%83/">软件参考</a></li></ul>
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/C/">C++</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/C/OO%E8%AE%BE%E8%AE%A1/">OO设计</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/C/%E7%BC%96%E8%AF%91%E9%93%BE%E6%8E%A5/">编译链接</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/OO%E8%AE%BE%E8%AE%A1/">OO设计</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E8%BD%AF%E4%BB%B6%E5%8F%82%E8%80%83/">软件参考</a></li></ul>
     </div>
   </div>
 
@@ -790,15 +812,15 @@ Derived没法访问Base里的private，只能是“次级身份”了。</p>
           </li>
         
           <li>
+            <a href="/2023/09/04/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/memento/">Memento模式实现角色状态恢复</a>
+          </li>
+        
+          <li>
             <a href="/2023/03/09/dynamic-cast/">dynamic_cast与虚继承</a>
           </li>
         
           <li>
             <a href="/2023/03/03/ime-research/">Win10控制台应用IME研究</a>
-          </li>
-        
-          <li>
-            <a href="/2023/03/03/encoding/">字符编码的历史与dotnet的做法</a>
           </li>
         
       </ul>
